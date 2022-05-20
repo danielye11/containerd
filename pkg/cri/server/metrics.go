@@ -29,11 +29,12 @@ var (
 	sandboxRuntimeStopTimer   metrics.LabeledTimer
 	sandboxRemoveTimer        metrics.LabeledTimer
 
-	containerListTimer   metrics.Timer
-	containerRemoveTimer metrics.LabeledTimer
-	containerCreateTimer metrics.LabeledTimer
-	containerStopTimer   metrics.LabeledTimer
-	containerStartTimer  metrics.LabeledTimer
+	containerListTimer       metrics.Timer
+	containerRemoveTimer     metrics.LabeledTimer
+	containerCreateTimer     metrics.LabeledTimer
+	containerStopTimer       metrics.LabeledTimer
+	containerStartTimer      metrics.LabeledTimer
+	containerCheckpointTimer metrics.LabeledTimer
 )
 
 func init() {
@@ -53,6 +54,7 @@ func init() {
 	containerCreateTimer = ns.NewLabeledTimer("container_create", "time to create a container", "runtime")
 	containerStopTimer = ns.NewLabeledTimer("container_stop", "time to stop a container", "runtime")
 	containerStartTimer = ns.NewLabeledTimer("container_start", "time to start a container", "runtime")
+	containerCheckpointTimer = ns.NewLabeledTimer("container_checkpoint", "time to checkpoint a container", "runtime")
 
 	metrics.Register(ns)
 }

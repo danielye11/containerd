@@ -22,10 +22,12 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 	"time"
 
+	crmetadata "github.com/checkpoint-restore/checkpointctl/lib"
 	api "github.com/containerd/containerd/api/services/tasks/v1"
 	"github.com/containerd/containerd/api/types"
 	"github.com/containerd/containerd/api/types/task"
@@ -566,6 +568,16 @@ func (l *local) Checkpoint(ctx context.Context, r *api.CheckpointTaskRequest, _ 
 		}
 		defer os.RemoveAll(image)
 	}
+
+	if r.ExportToArchive {
+		// We do not want anyone accessing the checkpoint directory
+		if err := os.MkdirAll(image, 0o700); err != nil {
+			return nil, err
+		}
+		checkpointImageExists = true
+		defer os.RemoveAll(image)
+	}
+
 	if err := t.Checkpoint(ctx, image, r.Options); err != nil {
 		return nil, errdefs.ToGRPC(err)
 	}
@@ -574,8 +586,40 @@ func (l *local) Checkpoint(ctx context.Context, r *api.CheckpointTaskRequest, _ 
 	if !checkpointImageExists {
 		return &api.CheckpointTaskResponse{}, nil
 	}
-	// write checkpoint to the content store
+	if r.ExportToArchive {
+		// Remove '/checkpoint' so that the actual checkpoint is in the
+		// checkpoint directory in the resulting archive.
+		image = path.Dir(image)
+
+		// Write spec to checkpoint archive
+		if err := os.WriteFile(
+			filepath.Join(image, crmetadata.SpecDumpFile),
+			container.Spec.GetValue(),
+			0600,
+		); err != nil {
+			return nil, err
+		}
+		// TODO: delete spec.dump, stats-dump dump.log
+	}
 	tar := archive.Diff(ctx, "", image)
+	if r.ExportToArchive {
+		// Write checkpoint to the external tar archive for Kubernetes support.
+		// Checkpoint archive should also not be accessible by anyone else.
+		outFile, err := os.OpenFile(r.Location, os.O_RDWR|os.O_CREATE, 0600)
+		if err != nil {
+			return nil, err
+		}
+		defer outFile.Close()
+		_, err = io.Copy(outFile, tar)
+		if err != nil {
+			return nil, err
+		}
+		if err := tar.Close(); err != nil {
+			return nil, err
+		}
+		return &api.CheckpointTaskResponse{}, nil
+	}
+	// write checkpoint to the content store
 	cp, err := l.writeContent(ctx, images.MediaTypeContainerd1Checkpoint, image, tar)
 	// close tar first after write
 	if err := tar.Close(); err != nil {

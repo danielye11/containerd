@@ -1630,3 +1630,22 @@ func v1RespToAlphaResp(
 	}
 	return nil
 }
+
+func (in *instrumentedService) CheckpointContainer(
+	ctx context.Context,
+	r *runtime.CheckpointContainerRequest,
+) (res *runtime.CheckpointContainerResponse, err error) {
+	if err := in.checkInitialized(); err != nil {
+		return nil, err
+	}
+	log.G(ctx).Infof("CheckpointContainer for %q(s)", r.GetContainerId())
+	defer func() {
+		if err != nil {
+			log.G(ctx).WithError(err).Errorf("CheckpointContainer for %q failed", r.GetContainerId())
+		} else {
+			log.G(ctx).Infof("CheckpointContainer for %q returns successfully", r.GetContainerId())
+		}
+	}()
+	res, err = in.c.CheckpointContainer(ctrdutil.WithNamespace(ctx), r)
+	return res, errdefs.ToGRPC(err)
+}

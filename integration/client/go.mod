@@ -24,6 +24,7 @@ require github.com/AdaLogics/go-fuzz-headers v0.0.0-20220706123152-fef3fe1bab07
 require (
 	github.com/Microsoft/go-winio v0.5.2 // indirect
 	github.com/blang/semver v3.5.1+incompatible // indirect
+	github.com/checkpoint-restore/checkpointctl v0.0.0-20220321135231-33f4a66335f0 // indirect
 	github.com/cilium/ebpf v0.7.0 // indirect
 	github.com/container-orchestrated-devices/container-device-interface v0.3.1 // indirect
 	github.com/containerd/console v1.0.3 // indirect
@@ -42,7 +43,7 @@ require (
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
-	github.com/klauspost/compress v1.11.13 // indirect
+	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/moby/locker v1.0.1 // indirect
 	github.com/moby/sys/mountinfo v0.6.2 // indirect
 	github.com/moby/sys/signal v0.7.0 // indirect
@@ -60,7 +61,7 @@ require (
 	golang.org/x/net v0.0.0-20220425223048-2871e0cb64e4 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 	golang.org/x/text v0.3.7 // indirect
-	google.golang.org/genproto v0.0.0-20220426171045-31bebdecfb46 // indirect
+	google.golang.org/genproto v0.0.0-20220502173005-c8bf987b8c21 // indirect
 	google.golang.org/grpc v1.47.0 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect

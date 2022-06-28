@@ -6,6 +6,7 @@ require (
 	github.com/AdaLogics/go-fuzz-headers v0.0.0-20220706123152-fef3fe1bab07
 	github.com/Microsoft/go-winio v0.5.2
 	github.com/Microsoft/hcsshim v0.9.2
+	github.com/checkpoint-restore/checkpointctl v0.0.0-20220321135231-33f4a66335f0
 	github.com/container-orchestrated-devices/container-device-interface v0.3.1
 	github.com/containerd/aufs v1.0.0
 	github.com/containerd/btrfs v1.0.0
@@ -35,7 +36,7 @@ require (
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/imdario/mergo v0.3.12
 	github.com/intel/goresctrl v0.2.0
-	github.com/klauspost/compress v1.11.13
+	github.com/klauspost/compress v1.13.6
 	github.com/moby/locker v1.0.1
 	github.com/moby/sys/mountinfo v0.6.2
 	github.com/moby/sys/signal v0.7.0
@@ -62,7 +63,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.7.0
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	golang.org/x/sys v0.0.0-20220520151302-bc2c85ada10a
-	google.golang.org/genproto v0.0.0-20220426171045-31bebdecfb46
+	google.golang.org/genproto v0.0.0-20220502173005-c8bf987b8c21
 	google.golang.org/grpc v1.47.0
 	google.golang.org/protobuf v1.28.0
 	k8s.io/api v0.24.1
@@ -70,7 +71,7 @@ require (
 	k8s.io/apiserver v0.24.1
 	k8s.io/client-go v0.24.1
 	k8s.io/component-base v0.24.1
-	k8s.io/cri-api v0.25.0-alpha.2
+	k8s.io/cri-api v0.25.0-alpha.3
 	k8s.io/klog/v2 v2.60.1
 	k8s.io/utils v0.0.0-20220210201930-3a6ce19ff2f9
 )

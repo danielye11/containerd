@@ -2,6 +2,8 @@ module github.com/containerd/containerd
 
 go 1.18
 
+replace k8s.io/cri-api => github.com/danielye11/kubernetes cri-api
+
 require (
 	github.com/AdaLogics/go-fuzz-headers v0.0.0-20220706123152-fef3fe1bab07
 	github.com/Microsoft/go-winio v0.5.2

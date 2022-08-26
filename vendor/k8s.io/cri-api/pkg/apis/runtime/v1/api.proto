@@ -690,6 +690,16 @@ message NetworkInterfaceUsage {
     UInt64Value tx_bytes = 4;
     // Cumulative count of transmit errors encountered.
     UInt64Value tx_errors = 5;
+    // Cumulative count of packets dropped while receiving
+    UInt64Value rx_dropped = 6;
+    // Cumulative count of packets received
+    UInt64Value rx_packets = 7;
+    // Cumulative count of packets dropped while transmitting
+    UInt64Value tx_dropped = 8;
+    // Cumulative count of packets transmitted
+    UInt64Value tx_packets = 9;
+
+
 }
 
 // ProcessUsage are stats pertaining to processes.
@@ -698,6 +708,14 @@ message ProcessUsage {
     int64 timestamp = 1;
     // Number of processes.
     UInt64Value process_count = 2;
+    // Number of open file descriptors for the container
+    UInt64Value file_descriptor_count = 3;
+    // Number of open sockets for the container
+    UInt64Value socket_count = 4;
+    // Maximum number of threads allowed inside the container, infinity if value is zero
+    UInt64Value threads_max = 5;
+    // Number of threads running inside the container
+    UInt64Value threads_count = 6;
 }
 
 // ImageSpec is an internal representation of an image.
@@ -740,6 +758,9 @@ message LinuxContainerResources {
     map<string, string> unified = 9;
     // Memory swap limit in bytes. Default 0 (not specified).
     int64 memory_swap_limit_in_bytes = 10;
+    // Memory reservation limit for the container
+    int64 memory_reservation_limit_bytes = 11;
+
 }
 
 // HugepageLimit corresponds to the file`hugetlb.<hugepagesize>.limit_in_byte` in container level cgroup.
@@ -1458,6 +1479,68 @@ message FilesystemUsage {
     // This may not equal InodesCapacity - InodesAvailable because the underlying
     // filesystem may also be used for purposes other than storing images.
     UInt64Value inodes_used = 4;
+    //The block device name associated with the filesystem.
+    string device = 5;
+    //Type of the file system
+    string fs_type = 6;
+	// Number of bytes that can be consumed by the container on this filesystem.
+    UInt64Value limit_bytes = 7;
+	// Number of bytes that is consumed by the container on this filesystem.
+    UInt64Value usage_bytes = 8;
+	// Base Usage that is consumed by the container's writable layer.
+    UInt64Value base_usage = 9;
+	// Number of bytes available for non-root user.
+    UInt64Value available_bytes = 10;
+	// HasInodes when true, indicates that Inodes info will be available.
+    bool has_inodes = 11;
+    // Number of inodes
+    UInt64Value inode_capacity = 12;
+    // number of available inodes
+    UInt64Value inodes_available = 13;
+	// Number of reads completed
+	// This is the total number of reads completed successfully.
+    UInt64Value reads_completed = 14;
+	// Number of reads merged
+	// Reads and writes which are adjacent to each other may be merged for
+	// efficiency.  Thus two 4K reads may become one 8K read before it is
+	// ultimately handed to the disk, and so it will be counted (and queued)
+	// as only one I/O.  This field lets you know how often this was done.
+    UInt64Value reads_merged = 15;
+	// Number of sectors read
+	// This is the total number of sectors read successfully.
+    UInt64Value sectors_read = 16;
+	// Number of milliseconds spent reading
+	// This is the total number of milliseconds spent by all reads (as
+	// measured from __make_request() to end_that_request_last()).
+    UInt64Value read_time = 17;
+	// Number of writes completed
+	// This is the total number of writes completed successfully.
+    UInt64Value writes_completed = 18;
+	// Number of writes merged
+	// See the description of reads merged.
+    UInt64Value writes_merged = 19;
+	// Number of sectors written
+	// This is the total number of sectors written successfully.
+    UInt64Value sectors_written = 20;
+	// Number of milliseconds spent writing
+	// This is the total number of milliseconds spent by all writes (as
+	// measured from __make_request() to end_that_request_last()).
+    UInt64Value write_time = 21;
+	// Number of I/Os currently in progress
+	// The only field that should go to zero. Incremented as requests are
+	// given to appropriate struct request_queue and decremented as they finish.
+    UInt64Value io_in_progress = 22;
+	// Number of milliseconds spent doing I/Os
+	// This field increases so long as field 9 is nonzero.
+    UInt64Value io_time = 23;
+	// weighted number of milliseconds spent doing I/Os
+	// This field is incremented at each I/O start, I/O completion, I/O
+	// merge, or read of these stats by the number of I/Os in progress
+	// (field 9) times the number of milliseconds spent doing I/O since the
+	// last update of this field.  This can provide an easy measure of both
+	// I/O completion time and the backlog that may be accumulating.
+    UInt64Value weighted_io_time = 24;
+
 }
 
 message ImageFsInfoResponse {
@@ -1534,6 +1617,24 @@ message CpuUsage {
     // Total CPU usage (sum of all cores) averaged over the sample window.
     // The "core" unit can be interpreted as CPU core-nanoseconds per second.
     UInt64Value usage_nano_cores = 3;
+    // Number of elapsed enforcement period intervals
+    UInt64Value cpu_cfs_periods_total = 4;
+    // Number of throttled period intervals
+    UInt64Value cpu_cfs_throttled_periods_total = 5;
+    // Total time duration the container has been throttled
+    UInt64Value cpu_cfs_throttled_seconds_total = 6;
+    // Value of container cpu load average over the last 10 seconds
+    UInt64Value cpu_load_average_10s = 7;
+    // Cumulative system cpu time consumed in seconds
+    UInt64Value cpu_system_seconds_total = 8;
+    // Cumulative cpu time consumed in seconds
+    UInt64Value cpu_usage_seconds_total = 9;
+    // Cumulative user cpu time consumed in seconds
+    UInt64Value cpu_user_seconds_total = 10;
+    // NUmber of tasks in a given state
+    ContainerTasksState tasks_state = 11;
+
+
 }
 
 // MemoryUsage provides the memory usage information.
@@ -1603,4 +1704,17 @@ enum ContainerEventType {
 
     // Container deleted
     CONTAINER_DELETED_EVENT = 3;
+}
+
+message ContainerTasksState {
+    // Number of sleeping tasks
+    UInt64Value sleeping_tasks = 1;
+    // Number of running tasks
+    UInt64Value running_tasks = 2;
+    // Number of stopped tasks
+    UInt64Value stopped_tasks = 3;
+    // Number of uninterruptible tasks
+    UInt64Value uninterruptible_tasks = 4;
+    // Number of iowaiting tasks
+    UInt64Value iowaiting_tasks = 5;
 }

@@ -37,6 +37,24 @@ func newInstrumentedService(c *criService) grpcServices {
 	return &instrumentedService{c: c}
 }
 
+func (in *instrumentedService) GetContainerEvents(r *runtime.GetEventsRequest, s runtime.RuntimeService_GetContainerEventsServer) (err error) {
+	if err := in.checkInitialized(); err != nil {
+		return err
+	}
+
+	ctx := s.Context()
+	defer func() {
+		if err != nil {
+			log.G(ctx).WithError(err).Errorf("GetContainerEvents failed, error")
+		} else {
+			log.G(ctx).Debug("GetContainerEvents returns successfully")
+		}
+	}()
+
+	err = in.c.GetContainerEvents(r, s)
+	return errdefs.ToGRPC(err)
+}
+
 // instrumentedAlphaService wraps service with containerd namespace and logs.
 type instrumentedAlphaService struct {
 	c *criService

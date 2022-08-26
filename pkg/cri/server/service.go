@@ -27,6 +27,8 @@ import (
 	"time"
 
 	"github.com/containerd/containerd"
+	"github.com/containerd/containerd/errdefs"
+	"github.com/containerd/containerd/log"
 	"github.com/containerd/containerd/oci"
 	"github.com/containerd/containerd/pkg/cri/streaming"
 	"github.com/containerd/containerd/pkg/kmutex"
@@ -182,6 +184,24 @@ func NewCRIService(config criconfig.Config, client *containerd.Client) (CRIServi
 	}
 
 	return c, nil
+}
+
+func (in *instrumentedService) GetContainerEvents(r *runtime.GetEventsRequest, s runtime.RuntimeService_GetContainerEventsServer) (err error) {
+	if err := in.checkInitialized(); err != nil {
+		return err
+	}
+
+	ctx := s.Context()
+	defer func() {
+		if err != nil {
+			log.G(ctx).WithError(err).Errorf("GetContainerEvents failed, error")
+		} else {
+			log.G(ctx).Debug("GetContainerEvents returns successfully")
+		}
+	}()
+
+	err = in.c.GetContainerEvents(r, s)
+	return errdefs.ToGRPC(err)
 }
 
 // Register registers all required services onto a specific grpc server.

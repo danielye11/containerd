@@ -73,11 +73,15 @@ func (c *criService) podSandboxStats(
 			rxBytes, rxErrors, txBytes, txErrors := getContainerNetIO(ctx, sandbox.NetNSPath)
 			podSandboxStats.Linux.Network = &runtime.NetworkUsage{
 				DefaultInterface: &runtime.NetworkInterfaceUsage{
-					Name:     defaultIfName,
-					RxBytes:  &runtime.UInt64Value{Value: rxBytes},
-					RxErrors: &runtime.UInt64Value{Value: rxErrors},
-					TxBytes:  &runtime.UInt64Value{Value: txBytes},
-					TxErrors: &runtime.UInt64Value{Value: txErrors},
+					Name:      defaultIfName,
+					RxBytes:   &runtime.UInt64Value{Value: rxBytes},
+					RxErrors:  &runtime.UInt64Value{Value: rxErrors},
+					TxBytes:   &runtime.UInt64Value{Value: txBytes},
+					TxErrors:  &runtime.UInt64Value{Value: txErrors},
+					RxDropped: &runtime.UInt64Value{Value: 0},
+					RxPackets: &runtime.UInt64Value{Value: 0},
+					TxDropped: &runtime.UInt64Value{Value: 0},
+					TxPackets: &runtime.UInt64Value{Value: 0},
 				},
 			}
 		}
@@ -106,8 +110,12 @@ func (c *criService) podSandboxStats(
 
 		}
 		podSandboxStats.Linux.Process = &runtime.ProcessUsage{
-			Timestamp:    timestamp.UnixNano(),
-			ProcessCount: &runtime.UInt64Value{Value: pidCount},
+			Timestamp:           timestamp.UnixNano(),
+			ProcessCount:        &runtime.UInt64Value{Value: pidCount},
+			FileDescriptorCount: &runtime.UInt64Value{Value: 0},
+			SocketCount:         &runtime.UInt64Value{Value: 0},
+			ThreadsMax:          &runtime.UInt64Value{Value: 0},
+			ThreadsCount:        &runtime.UInt64Value{Value: 0},
 		}
 
 		listContainerStatsRequest := &runtime.ListContainerStatsRequest{Filter: &runtime.ContainerStatsFilter{PodSandboxId: meta.ID}}

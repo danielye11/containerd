@@ -49,8 +49,28 @@ func (c *criService) containerMetrics(
 		FsId: &runtime.FilesystemIdentifier{
 			Mountpoint: c.imageFSPath,
 		},
-		UsedBytes:  &runtime.UInt64Value{Value: usedBytes},
-		InodesUsed: &runtime.UInt64Value{Value: inodesUsed},
+		UsedBytes:       &runtime.UInt64Value{Value: usedBytes},
+		InodesUsed:      &runtime.UInt64Value{Value: inodesUsed},
+		Device:          "",
+		FsType:          "",
+		LimitBytes:      &runtime.UInt64Value{Value: 0},
+		UsageBytes:      &runtime.UInt64Value{Value: 0},
+		BaseUsage:       &runtime.UInt64Value{Value: 0},
+		AvailableBytes:  &runtime.UInt64Value{Value: 0},
+		HasInodes:       false,
+		InodeCapacity:   &runtime.UInt64Value{Value: 0},
+		InodesAvailable: &runtime.UInt64Value{Value: 0},
+		ReadsCompleted:  &runtime.UInt64Value{Value: 0},
+		ReadsMerged:     &runtime.UInt64Value{Value: 0},
+		SectorsRead:     &runtime.UInt64Value{Value: 0},
+		ReadTime:        &runtime.UInt64Value{Value: 0},
+		WritesCompleted: &runtime.UInt64Value{Value: 0},
+		WritesMerged:    &runtime.UInt64Value{Value: 0},
+		SectorsWritten:  &runtime.UInt64Value{Value: 0},
+		WriteTime:       &runtime.UInt64Value{Value: 0},
+		IoInProgress:    &runtime.UInt64Value{Value: 0},
+		IoTime:          &runtime.UInt64Value{Value: 0},
+		WeightedIoTime:  &runtime.UInt64Value{Value: 0},
 	}
 	cs.Attributes = &runtime.ContainerAttributes{
 		Id:          meta.ID,
@@ -209,9 +229,15 @@ func (c *criService) cpuContainerStats(ID string, isSandbox bool, stats interfac
 			}
 
 			return &runtime.CpuUsage{
-				Timestamp:            timestamp.UnixNano(),
-				UsageCoreNanoSeconds: &runtime.UInt64Value{Value: metrics.CPU.Usage.Total},
-				UsageNanoCores:       &runtime.UInt64Value{Value: usageNanoCores},
+				Timestamp:                   timestamp.UnixNano(),
+				UsageCoreNanoSeconds:        &runtime.UInt64Value{Value: metrics.CPU.Usage.Total},
+				UsageNanoCores:              &runtime.UInt64Value{Value: usageNanoCores},
+				CpuCfsThrottledPeriodsTotal: &runtime.UInt64Value{Value: 0},
+				CpuCfsThrottledSecondsTotal: &runtime.UInt64Value{Value: 0},
+				CpuLoadAverage_10S:          &runtime.UInt64Value{Value: 0},
+				CpuSystemSecondsTotal:       &runtime.UInt64Value{Value: 0},
+				CpuUsageSecondsTotal:        &runtime.UInt64Value{Value: 0},
+				CpuUserSecondsTotal:         &runtime.UInt64Value{Value: 0},
 			}, nil
 		}
 	case *v2.Metrics:

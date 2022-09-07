@@ -9,7 +9,7 @@ require (
 	github.com/AdamKorcz/go-118-fuzz-build v0.0.0-20220723121359-e03a0069662f
 	github.com/Microsoft/go-winio v0.5.2
 	github.com/Microsoft/hcsshim v0.10.0-rc.1
-	github.com/container-orchestrated-devices/container-device-interface v0.3.1
+	github.com/container-orchestrated-devices/container-device-interface v0.5.1
 	github.com/containerd/aufs v1.0.0
 	github.com/containerd/btrfs v1.0.0
 	github.com/containerd/cgroups v1.0.5-0.20220816231112-7083cd60b721
@@ -126,7 +126,7 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/internal/retry v1.7.0 // indirect
 	go.opentelemetry.io/proto/otlp v0.16.0 // indirect
 	golang.org/x/crypto v0.0.0-20220315160706-3147a52a75dd // indirect
-	golang.org/x/net v0.0.0-20220722155237-a158d28d115b // indirect
+	golang.org/x/net v0.0.0-20220906165146-f3363e06e74c // indirect; updated for CVE-2022-27664
 	golang.org/x/oauth2 v0.0.0-20211104180415-d3ed0bb246c8 // indirect
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
 	golang.org/x/text v0.3.7 // indirect

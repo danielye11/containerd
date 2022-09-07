@@ -26,7 +26,7 @@ require (
 	github.com/Microsoft/go-winio v0.5.2 // indirect
 	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/cilium/ebpf v0.9.1 // indirect
-	github.com/container-orchestrated-devices/container-device-interface v0.3.1 // indirect
+	github.com/container-orchestrated-devices/container-device-interface v0.5.1 // indirect
 	github.com/containerd/console v1.0.3 // indirect
 	github.com/containerd/continuity v0.3.0 // indirect
 	github.com/containerd/fifo v1.0.0 // indirect
@@ -35,6 +35,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/docker/go-events v0.0.0-20190806004212-e31b211e4f1c // indirect
 	github.com/docker/go-units v0.4.0 // indirect
+	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/godbus/dbus/v5 v5.0.6 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
@@ -59,7 +60,7 @@ require (
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
 	go.opencensus.io v0.23.0 // indirect
-	golang.org/x/net v0.0.0-20220722155237-a158d28d115b // indirect
+	golang.org/x/net v0.0.0-20220906165146-f3363e06e74c // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/genproto v0.0.0-20220502173005-c8bf987b8c21 // indirect

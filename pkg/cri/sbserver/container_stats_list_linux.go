@@ -26,6 +26,7 @@ import (
 	"github.com/containerd/containerd/protobuf"
 	"github.com/containerd/typeurl"
 	runtime "k8s.io/cri-api/pkg/apis/runtime/v1"
+	"k8s.io/klog/v2"
 
 	containerstore "github.com/containerd/containerd/pkg/cri/store/container"
 	"github.com/containerd/containerd/pkg/cri/store/stats"
@@ -96,6 +97,7 @@ func (c *criService) containerMetrics(
 			return nil, fmt.Errorf("failed to obtain memory stats: %w", err)
 		}
 		cs.Memory = memoryStats
+
 	}
 
 	return &cs, nil
@@ -222,22 +224,24 @@ func (c *criService) cpuContainerStats(ID string, isSandbox bool, stats interfac
 	switch metrics := stats.(type) {
 	case *v1.Metrics:
 		if metrics.CPU != nil && metrics.CPU.Usage != nil {
-
 			usageNanoCores, err := c.getUsageNanoCores(ID, isSandbox, metrics.CPU.Usage.Total, timestamp)
 			if err != nil {
 				return nil, fmt.Errorf("failed to get usage nano cores, containerID: %s: %w", ID, err)
 			}
-
+			klog.Infof("danielye: CpuCfsThrottledPeriodsTotal stat: %+v", metrics.CPU.Throttling.ThrottledPeriods)
+			klog.Infof("danielye: CpuCfsThrottledSecondsTotal stat: %+v", metrics.CPU.Throttling.ThrottledTime/uint64(time.Second))
+			klog.Infof("danielye: CpuSystemSecondsTotal stat: %+v", metrics.CPU.Usage.Kernel)
+			klog.Infof("danielye: CpuUsageSecondsTotal stat: %+v", metrics.CPU.Usage.Total)
+			klog.Infof("danielye: CpuUserSecondsTotal stat: %+v", metrics.CPU.Usage.User)
 			return &runtime.CpuUsage{
 				Timestamp:                   timestamp.UnixNano(),
 				UsageCoreNanoSeconds:        &runtime.UInt64Value{Value: metrics.CPU.Usage.Total},
 				UsageNanoCores:              &runtime.UInt64Value{Value: usageNanoCores},
-				CpuCfsThrottledPeriodsTotal: &runtime.UInt64Value{Value: 1},
-				CpuCfsThrottledSecondsTotal: &runtime.UInt64Value{Value: 1},
-				CpuLoadAverage_10S:          &runtime.UInt64Value{Value: 1},
-				CpuSystemSecondsTotal:       &runtime.UInt64Value{Value: 1},
-				CpuUsageSecondsTotal:        &runtime.UInt64Value{Value: 1},
-				CpuUserSecondsTotal:         &runtime.UInt64Value{Value: 1},
+				CpuCfsThrottledPeriodsTotal: &runtime.UInt64Value{Value: metrics.CPU.Throttling.ThrottledPeriods},
+				CpuCfsThrottledSecondsTotal: &runtime.UInt64Value{Value: metrics.CPU.Throttling.ThrottledTime / uint64(time.Second)},
+				CpuSystemSecondsTotal:       &runtime.UInt64Value{Value: metrics.CPU.Usage.Kernel},
+				CpuUsageSecondsTotal:        &runtime.UInt64Value{Value: metrics.CPU.Usage.Total},
+				CpuUserSecondsTotal:         &runtime.UInt64Value{Value: metrics.CPU.Usage.User},
 			}, nil
 		}
 	case *v2.Metrics:
@@ -278,6 +282,9 @@ func (c *criService) memoryContainerStats(ID string, stats interface{}, timestam
 				RssBytes:        &runtime.UInt64Value{Value: metrics.Memory.TotalRSS},
 				PageFaults:      &runtime.UInt64Value{Value: metrics.Memory.TotalPgFault},
 				MajorPageFaults: &runtime.UInt64Value{Value: metrics.Memory.TotalPgMajFault},
+				MemoryCache:     &runtime.UInt64Value{Value: metrics.Memory.Cache},
+				MemoryFailcnt:   &runtime.UInt64Value{Value: metrics.Memory.Usage.Failcnt},
+				MaxUsageBytes:   &runtime.UInt64Value{Value: metrics.Memory.Usage.Max},
 			}, nil
 		}
 	case *v2.Metrics:
@@ -296,6 +303,43 @@ func (c *criService) memoryContainerStats(ID string, stats interface{}, timestam
 				RssBytes:        &runtime.UInt64Value{Value: metrics.Memory.Anon},
 				PageFaults:      &runtime.UInt64Value{Value: metrics.Memory.Pgfault},
 				MajorPageFaults: &runtime.UInt64Value{Value: metrics.Memory.Pgmajfault},
+				// MemoryCache:     &runtime.UInt64Value{Value: metrics.Memory.Cache},
+				// MemoryFailcnt:   &runtime.UInt64Value{Value: metrics.Memory.Usage.Failcnt},
+				// MaxUsageBytes:   &runtime.UInt64Value{Value: metrics.Memory.Usage.Max},
+			}, nil
+		}
+	default:
+		return nil, fmt.Errorf("unexpected metrics type: %v", metrics)
+	}
+	return nil, nil
+}
+
+func (c *criService) processContainerStats(ID string, stats interface{}, timestamp time.Time) (*runtime.ContainerProcessUsage, error) {
+	switch metrics := stats.(type) {
+	case *v1.Metrics:
+		if metrics.Pids != nil && metrics.Memory.Usage != nil {
+			workingSetBytes := getWorkingSet(metrics.Memory)
+
+			return &runtime.MemoryUsage{
+				Timestamp: timestamp.UnixNano(),
+				WorkingSetBytes: &runtime.UInt64Value{
+					Value: workingSetBytes,
+				},
+				AvailableBytes:  &runtime.UInt64Value{Value: getAvailableBytes(metrics.Memory, workingSetBytes)},
+				UsageBytes:      &runtime.UInt64Value{Value: metrics.Memory.Usage.Usage},
+				RssBytes:        &runtime.UInt64Value{Value: metrics.Memory.TotalRSS},
+				PageFaults:      &runtime.UInt64Value{Value: metrics.Memory.TotalPgFault},
+				MajorPageFaults: &runtime.UInt64Value{Value: metrics.Memory.TotalPgMajFault},
+				MemoryCache:     &runtime.UInt64Value{Value: metrics.Memory.Cache},
+				MemoryFailcnt:   &runtime.UInt64Value{Value: metrics.Memory.Usage.Failcnt},
+				MaxUsageBytes:   &runtime.UInt64Value{Value: metrics.Memory.Usage.Max},
+			}, nil
+		}
+	case *v2.Metrics:
+		if metrics.Pids != nil {
+			return &runtime.ContainerProcessUsage{
+				ThreadsMax: ,
+				
 			}, nil
 		}
 	default:

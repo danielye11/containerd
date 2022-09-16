@@ -387,6 +387,7 @@ func (in *instrumentedAlphaService) PortForward(ctx context.Context, r *runtime_
 }
 
 func (in *instrumentedService) CreateContainer(ctx context.Context, r *runtime.CreateContainerRequest) (res *runtime.CreateContainerResponse, err error) {
+	log.G(ctx).Info("danielye: Inside createcontainer")
 	if err := in.checkInitialized(); err != nil {
 		return nil, err
 	}
@@ -1252,6 +1253,7 @@ func (in *instrumentedAlphaService) PodSandboxStats(ctx context.Context, r *runt
 }
 
 func (in *instrumentedService) ContainerStats(ctx context.Context, r *runtime.ContainerStatsRequest) (res *runtime.ContainerStatsResponse, err error) {
+	log.G(ctx).Info("danielye: Inside containerstats")
 	if err := in.checkInitialized(); err != nil {
 		return nil, err
 	}

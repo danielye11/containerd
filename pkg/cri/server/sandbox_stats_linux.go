@@ -110,12 +110,8 @@ func (c *criService) podSandboxStats(
 
 		}
 		podSandboxStats.Linux.Process = &runtime.ProcessUsage{
-			Timestamp:           timestamp.UnixNano(),
-			ProcessCount:        &runtime.UInt64Value{Value: pidCount},
-			FileDescriptorCount: &runtime.UInt64Value{Value: 1},
-			SocketCount:         &runtime.UInt64Value{Value: 1},
-			ThreadsMax:          &runtime.UInt64Value{Value: 1},
-			ThreadsCount:        &runtime.UInt64Value{Value: 1},
+			Timestamp:    timestamp.UnixNano(),
+			ProcessCount: &runtime.UInt64Value{Value: pidCount},
 		}
 
 		listContainerStatsRequest := &runtime.ListContainerStatsRequest{Filter: &runtime.ContainerStatsFilter{PodSandboxId: meta.ID}}

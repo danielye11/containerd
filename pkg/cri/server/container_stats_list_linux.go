@@ -160,12 +160,18 @@ func (c *criService) cpuContainerStats(ID string, isSandbox bool, stats interfac
 				Timestamp:                   timestamp.UnixNano(),
 				UsageCoreNanoSeconds:        &runtime.UInt64Value{Value: metrics.CPU.Usage.Total},
 				UsageNanoCores:              &runtime.UInt64Value{Value: 1},
-				CpuCfsThrottledPeriodsTotal: &runtime.UInt64Value{Value: 1},
-				CpuCfsThrottledSecondsTotal: &runtime.UInt64Value{Value: 1},
-				CpuLoadAverage_10S:          &runtime.UInt64Value{Value: 1},
-				CpuSystemSecondsTotal:       &runtime.UInt64Value{Value: 1},
-				CpuUsageSecondsTotal:        &runtime.UInt64Value{Value: 1},
-				CpuUserSecondsTotal:         &runtime.UInt64Value{Value: 1},
+				CpuCfsThrottledPeriodsTotal: &runtime.UInt64Value{Value: metrics.CPU.Throttling.ThrottledPeriods},
+				CpuCfsThrottledSecondsTotal: &runtime.UInt64Value{Value: metrics.CPU.Throttling.ThrottledTime / uint64(time.Second)},
+				CpuSystemSecondsTotal:       &runtime.UInt64Value{Value: metrics.CPU.Usage.Kernel},
+				CpuUsageSecondsTotal:        &runtime.UInt64Value{Value: metrics.CPU.Usage.Total},
+				CpuUserSecondsTotal:         &runtime.UInt64Value{Value: metrics.CPU.Usage.User},
+				TasksState: &runtime.ContainerTasksState{
+					SleepingTasks:        &runtime.UInt64Value{Value: 1},
+					RunningTasks:         &runtime.UInt64Value{Value: 1},
+					StoppedTasks:         &runtime.UInt64Value{Value: 1},
+					UninterruptibleTasks: &runtime.UInt64Value{Value: 1},
+					IowaitingTasks:       &runtime.UInt64Value{Value: 1},
+				},
 			}, nil
 		}
 	case *v2.Metrics:
@@ -200,6 +206,9 @@ func (c *criService) memoryContainerStats(ID string, stats interface{}, timestam
 				RssBytes:        &runtime.UInt64Value{Value: metrics.Memory.TotalRSS},
 				PageFaults:      &runtime.UInt64Value{Value: metrics.Memory.TotalPgFault},
 				MajorPageFaults: &runtime.UInt64Value{Value: metrics.Memory.TotalPgMajFault},
+				MemoryCache:     &runtime.UInt64Value{Value: metrics.Memory.Cache},
+				MemoryFailcnt:   &runtime.UInt64Value{Value: metrics.Memory.Usage.Failcnt},
+				MaxUsageBytes:   &runtime.UInt64Value{Value: metrics.Memory.Usage.Max},
 			}, nil
 		}
 	case *v2.Metrics:

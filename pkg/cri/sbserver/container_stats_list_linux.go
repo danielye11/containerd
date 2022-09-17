@@ -309,7 +309,7 @@ func (c *criService) memoryContainerStats(ID string, stats interface{}, timestam
 				RssBytes:        &runtime.UInt64Value{Value: metrics.Memory.Anon},
 				PageFaults:      &runtime.UInt64Value{Value: metrics.Memory.Pgfault},
 				MajorPageFaults: &runtime.UInt64Value{Value: metrics.Memory.Pgmajfault},
-				// MemoryCache:     &runtime.UInt64Value{Value: metrics.Memory.Cache},
+				MemoryCache:     &runtime.UInt64Value{Value: metrics.Memory.Cache},
 				// MemoryFailcnt:   &runtime.UInt64Value{Value: metrics.Memory.Usage.Failcnt},
 				// MaxUsageBytes:   &runtime.UInt64Value{Value: metrics.Memory.Usage.Max},
 			}, nil

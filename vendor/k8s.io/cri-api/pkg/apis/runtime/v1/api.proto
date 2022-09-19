@@ -708,14 +708,19 @@ message ProcessUsage {
     int64 timestamp = 1;
     // Number of processes.
     UInt64Value process_count = 2;
+}
+
+message ContainerProcessUsage {
+    // The time at which these stats were updated.
+    int64 timestamp = 1;
     // Number of open file descriptors for the container
-    UInt64Value file_descriptor_count = 3;
+    UInt64Value file_descriptor_count = 2;
     // Number of open sockets for the container
-    UInt64Value socket_count = 4;
+    UInt64Value socket_count = 3;
     // Maximum number of threads allowed inside the container, infinity if value is zero
-    UInt64Value threads_max = 5;
+    UInt64Value threads_max = 4;
     // Number of threads running inside the container
-    UInt64Value threads_count = 6;
+    UInt64Value threads_count = 5;
 }
 
 // ImageSpec is an internal representation of an image.
@@ -1606,6 +1611,8 @@ message ContainerStats {
     MemoryUsage memory = 3;
     // Usage of the writable layer.
     FilesystemUsage writable_layer = 4;
+    //Usage of container processes
+    ContainerProcessUsage process = 5;
 }
 
 // CpuUsage provides the CPU usage information.
@@ -1623,16 +1630,14 @@ message CpuUsage {
     UInt64Value cpu_cfs_throttled_periods_total = 5;
     // Total time duration the container has been throttled
     UInt64Value cpu_cfs_throttled_seconds_total = 6;
-    // Value of container cpu load average over the last 10 seconds
-    UInt64Value cpu_load_average_10s = 7;
     // Cumulative system cpu time consumed in seconds
-    UInt64Value cpu_system_seconds_total = 8;
+    UInt64Value cpu_system_seconds_total = 7;
     // Cumulative cpu time consumed in seconds
-    UInt64Value cpu_usage_seconds_total = 9;
+    UInt64Value cpu_usage_seconds_total = 8;
     // Cumulative user cpu time consumed in seconds
-    UInt64Value cpu_user_seconds_total = 10;
+    UInt64Value cpu_user_seconds_total = 9;
     // NUmber of tasks in a given state
-    ContainerTasksState tasks_state = 11;
+    ContainerTasksState tasks_state = 10;
 
 
 }
@@ -1653,6 +1658,12 @@ message MemoryUsage {
     UInt64Value page_faults = 6;
     // Cumulative number of major page faults.
     UInt64Value major_page_faults = 7;
+    //Number of bytes of page cache memory
+    UInt64Value memory_cache = 8;
+    //Number of memory usage hits limits
+    UInt64Value memory_failcnt = 9;
+    //Maximum memory usage recorded in bytes
+    UInt64Value max_usage_bytes = 10;
 }
 
 message ReopenContainerLogRequest {

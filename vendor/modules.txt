@@ -88,7 +88,7 @@ github.com/containerd/aufs/plugin
 # github.com/containerd/btrfs v1.0.0
 ## explicit; go 1.15
 github.com/containerd/btrfs
-# github.com/containerd/cgroups v1.0.5-0.20220816231112-7083cd60b721
+# github.com/containerd/cgroups v1.0.5-0.20220816231112-7083cd60b721 => /usr/local/google/home/yedaniel/go/src/github.com/containerd/cgroups
 ## explicit; go 1.17
 github.com/containerd/cgroups
 github.com/containerd/cgroups/stats/v1
@@ -601,7 +601,7 @@ google.golang.org/grpc/serviceconfig
 google.golang.org/grpc/stats
 google.golang.org/grpc/status
 google.golang.org/grpc/tap
-# google.golang.org/protobuf v1.28.0
+# google.golang.org/protobuf v1.28.1
 ## explicit; go 1.11
 google.golang.org/protobuf/compiler/protogen
 google.golang.org/protobuf/encoding/protojson
@@ -776,3 +776,4 @@ sigs.k8s.io/structured-merge-diff/v4/value
 ## explicit; go 1.12
 sigs.k8s.io/yaml
 # k8s.io/cri-api => /usr/local/google/home/yedaniel/go/src/k8s.io/kubernetes/staging/src/k8s.io/cri-api
+# github.com/containerd/cgroups => /usr/local/google/home/yedaniel/go/src/github.com/containerd/cgroups

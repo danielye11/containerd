@@ -4,6 +4,8 @@ go 1.18
 
 replace k8s.io/cri-api => /usr/local/google/home/yedaniel/go/src/k8s.io/kubernetes/staging/src/k8s.io/cri-api
 
+replace github.com/containerd/cgroups => /usr/local/google/home/yedaniel/go/src/github.com/containerd/cgroups
+
 require (
 	github.com/AdaLogics/go-fuzz-headers v0.0.0-20220706123152-fef3fe1bab07
 	github.com/AdamKorcz/go-118-fuzz-build v0.0.0-20220723121359-e03a0069662f
@@ -69,7 +71,7 @@ require (
 	golang.org/x/sys v0.0.0-20220829200755-d48e67d00261
 	google.golang.org/genproto v0.0.0-20220502173005-c8bf987b8c21
 	google.golang.org/grpc v1.47.0
-	google.golang.org/protobuf v1.28.0
+	google.golang.org/protobuf v1.28.1
 	k8s.io/api v0.24.1
 	k8s.io/apimachinery v0.24.1
 	k8s.io/apiserver v0.24.1

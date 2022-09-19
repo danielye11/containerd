@@ -95,12 +95,6 @@ func (c *criService) containerMetrics(
 			return nil, fmt.Errorf("failed to obtain memory stats: %w", err)
 		}
 		cs.Memory = memoryStats
-
-		processStats, err := c.processContainerStats(meta.ID, s, protobuf.FromTimestamp(stats.Timestamp))
-		if err != nil {
-			return nil, fmt.Errorf("failed to obtain process stats: %w", err)
-		}
-		cs.Process = processStats
 	}
 
 	return &cs, nil
@@ -233,30 +227,6 @@ func (c *criService) memoryContainerStats(ID string, stats interface{}, timestam
 				RssBytes:        &runtime.UInt64Value{Value: metrics.Memory.Anon},
 				PageFaults:      &runtime.UInt64Value{Value: metrics.Memory.Pgfault},
 				MajorPageFaults: &runtime.UInt64Value{Value: metrics.Memory.Pgmajfault},
-			}, nil
-		}
-	default:
-		return nil, fmt.Errorf("unexpected metrics type: %v", metrics)
-	}
-	return nil, nil
-}
-
-func (c *criService) processContainerStats(ID string, stats interface{}, timestamp time.Time) (*runtime.ContainerProcessUsage, error) {
-	switch metrics := stats.(type) {
-	case *v1.Metrics:
-		if metrics.Pids != nil {
-			return &runtime.ContainerProcessUsage{
-				Timestamp:    timestamp.UnixNano(),
-				ThreadsMax:   &runtime.UInt64Value{Value: metrics.Pids.Limit},
-				ThreadsCount: &runtime.UInt64Value{Value: metrics.Pids.Current},
-			}, nil
-		}
-	case *v2.Metrics:
-		if metrics.Pids != nil {
-			return &runtime.ContainerProcessUsage{
-				Timestamp:    timestamp.UnixNano(),
-				ThreadsMax:   &runtime.UInt64Value{Value: metrics.Pids.Limit},
-				ThreadsCount: &runtime.UInt64Value{Value: metrics.Pids.Current},
 			}, nil
 		}
 	default:

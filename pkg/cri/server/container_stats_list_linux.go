@@ -186,8 +186,21 @@ func (c *criService) cpuContainerStats(ID string, isSandbox bool, stats interfac
 			usageCoreNanoSeconds := metrics.CPU.UsageUsec * 1000
 
 			return &runtime.CpuUsage{
-				Timestamp:            timestamp.UnixNano(),
-				UsageCoreNanoSeconds: &runtime.UInt64Value{Value: usageCoreNanoSeconds},
+				Timestamp:                   timestamp.UnixNano(),
+				UsageCoreNanoSeconds:        &runtime.UInt64Value{Value: usageCoreNanoSeconds},
+				UsageNanoCores:              &runtime.UInt64Value{Value: 1},
+				CpuCfsThrottledPeriodsTotal: &runtime.UInt64Value{Value: metrics.CPU.NrPeriods},
+				CpuCfsThrottledSecondsTotal: &runtime.UInt64Value{Value: metrics.CPU.NrThrottled / uint64(time.Second)},
+				CpuSystemSecondsTotal:       &runtime.UInt64Value{Value: metrics.CPU.SystemUsec},
+				CpuUsageSecondsTotal:        &runtime.UInt64Value{Value: metrics.CPU.UsageUsec},
+				CpuUserSecondsTotal:         &runtime.UInt64Value{Value: metrics.CPU.UserUsec},
+				TasksState: &runtime.ContainerTasksState{
+					SleepingTasks:        &runtime.UInt64Value{Value: 1},
+					RunningTasks:         &runtime.UInt64Value{Value: 1},
+					StoppedTasks:         &runtime.UInt64Value{Value: 1},
+					UninterruptibleTasks: &runtime.UInt64Value{Value: 1},
+					IowaitingTasks:       &runtime.UInt64Value{Value: 1},
+				},
 			}, nil
 		}
 	default:

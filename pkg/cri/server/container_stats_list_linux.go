@@ -101,6 +101,12 @@ func (c *criService) containerMetrics(
 			return nil, fmt.Errorf("failed to obtain process stats: %w", err)
 		}
 		cs.Process = processStats
+
+		metricStats, err := c.prometheusMetrics()
+		if err != nil {
+			return nil, fmt.Errorf("failed to obtain prometheus stats: %w", err)
+		}
+		cs.PrometheusMetric = metricStats
 	}
 
 	return &cs, nil
@@ -277,4 +283,27 @@ func (c *criService) processContainerStats(ID string, stats interface{}, timesta
 		return nil, fmt.Errorf("unexpected metrics type: %v", metrics)
 	}
 	return nil, nil
+}
+
+func (c *criService) prometheusMetrics() (*runtime.Metric, error) {
+	var m runtime.Metric
+	m.Label = &runtime.LabelPair{
+		Name:  "danielye: prometheus dummy metric name",
+		Value: "danielye: prometheus dummy metric value",
+	}
+	m.Gauge = &runtime.Gauge{
+		Value: 1.0,
+	}
+	m.Type = runtime.MetricType_COUNTER
+	m.TimestampMs = 17
+	// var prometheus_label runtime.LabelPair
+	// var label_array []runtime.LabelPair = &runtime.Lba
+	// {&runtime.LabelPair{
+	// 	Name:  []string{"danielye: prometheus dummy metric name",",1"},
+	// 	Value: []string{"danielye: prometheus dummy metric value"},
+	// }}
+	// m.Label = label_array[]runtime.LabelPair{}
+	// var label_name runtime.LabelPair
+	return &m, nil
+
 }

@@ -711,7 +711,7 @@ message ProcessUsage {
 }
 
 message ContainerProcessUsage {
-    // The time at which these stats were updated.
+    // Timestamp in nanoseconds at which the information were collected. Must be > 0.
     int64 timestamp = 1;
     // Number of open file descriptors for the container
     UInt64Value file_descriptor_count = 2;
@@ -1584,6 +1584,7 @@ message ContainerStatsFilter {
 message ListContainerStatsResponse {
     // Stats of the container.
     repeated ContainerStats stats = 1;
+    repeated Metric metrics = 2;
 }
 
 // ContainerAttributes provides basic information of the container.
@@ -1613,6 +1614,8 @@ message ContainerStats {
     FilesystemUsage writable_layer = 4;
     //Usage of container processes
     ContainerProcessUsage process = 5;
+    //dummy metrics
+    Metric prometheus_metric = 6;
 }
 
 // CpuUsage provides the CPU usage information.
@@ -1729,3 +1732,23 @@ message ContainerTasksState {
     // Number of iowaiting tasks
     UInt64Value iowaiting_tasks = 5;
 }
+
+message Metric {
+    LabelPair label = 1;
+    Gauge gauge = 2;
+    int64 timestamp_ms = 3;
+    MetricType type = 4;
+}
+
+message LabelPair {
+    string name = 1;
+    string value = 2;
+}
+enum MetricType {
+    COUNTER = 0;
+    GAUGE = 1;
+}
+message Gauge {
+    double value = 1;
+}
+

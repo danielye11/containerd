@@ -373,13 +373,6 @@ file {
       type: TYPE_UINT64
       json_name: "swapLimit"
     }
-    field {
-      name: "cache"
-      number: 36
-      label: LABEL_OPTIONAL
-      type: TYPE_UINT64
-      json_name: "cache"
-    }
   }
   message_type {
     name: "MemoryEvents"

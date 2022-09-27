@@ -26,10 +26,12 @@ import (
 	"github.com/containerd/containerd/protobuf"
 	"github.com/containerd/typeurl"
 	runtime "k8s.io/cri-api/pkg/apis/runtime/v1"
+	"k8s.io/klog/v2"
 
 	containerstore "github.com/containerd/containerd/pkg/cri/store/container"
 )
 
+// replace this and references with new method that returns runtime.ContainerStats
 func (c *criService) containerMetrics(
 	meta containerstore.Metadata,
 	stats *types.Metric,
@@ -37,6 +39,7 @@ func (c *criService) containerMetrics(
 	var cs runtime.ContainerStats
 	var usedBytes, inodesUsed uint64
 	sn, err := c.snapshotStore.Get(meta.ID)
+	klog.Infof("danielyeid: " + meta.ID)
 	// If snapshotstore doesn't have cached snapshot information
 	// set WritableLayer usage to zero
 	if err == nil {

@@ -30,6 +30,7 @@ import (
 
 	containerstore "github.com/containerd/containerd/pkg/cri/store/container"
 	"github.com/containerd/containerd/pkg/cri/store/stats"
+	containerstorestats "github.com/containerd/containerd/pkg/cri/store/stats"
 )
 
 func (c *criService) containerMetrics(
@@ -113,6 +114,57 @@ func (c *criService) containerMetrics(
 
 	}
 
+	return &cs, nil
+}
+
+func (c *criService) setContainerMetrics(
+	meta containerstore.Metadata,
+	stats *types.Metric,
+) (*containerstorestats.ContainerStats, error) {
+	var cs containerstorestats.ContainerStats
+	var usedBytes, inodesUsed uint64
+	sn, err := c.snapshotStore.Get(meta.ID)
+	// If snapshotstore doesn't have cached snapshot information
+	// set WritableLayer usage to zero
+	if err == nil {
+		usedBytes = sn.Size
+		inodesUsed = sn.Inodes
+
+	}
+	cs.FileSystemStats = containerstorestats.ContainerFileSystemStats{
+		FsId: containerstorestats.FilesystemIdentifier{
+			Mountpoint: c.imageFSPath,
+		},
+		UsedBytes:       usedBytes,
+		InodesUsed:      inodesUsed,
+		Device:          "a",
+		FsType:          "a",
+		LimitBytes:      1,
+		UsageBytes:      1,
+		BaseUsage:       1,
+		AvailableBytes:  1,
+		HasInodes:       false,
+		InodeCapacity:   1,
+		InodesAvailable: 1,
+		ReadsCompleted:  1,
+		ReadsMerged:     1,
+		SectorsRead:     1,
+		ReadTime:        1,
+		WritesCompleted: 1,
+		WritesMerged:    1,
+		SectorsWritten:  1,
+		WriteTime:       1,
+		IoInProgress:    1,
+		IoTime:          1,
+		WeightedIoTime:  1,
+	}
+
+	cs.Attributes = containerstorestats.ContainerAttributes{
+		Id:          meta.ID,
+		Metadata:    meta.Config.GetMetadata(),
+		Labels:      meta.Config.GetLabels(),
+		Annotations: meta.Config.GetAnnotations(),
+	}
 	return &cs, nil
 }
 

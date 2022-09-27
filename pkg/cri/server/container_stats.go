@@ -22,11 +22,13 @@ import (
 
 	tasks "github.com/containerd/containerd/api/services/tasks/v1"
 	runtime "k8s.io/cri-api/pkg/apis/runtime/v1"
+	"k8s.io/klog/v2"
 )
 
 // ContainerStats returns stats of the container. If the container does not
 // exist, the call returns an error.
 func (c *criService) ContainerStats(ctx context.Context, in *runtime.ContainerStatsRequest) (*runtime.ContainerStatsResponse, error) {
+	klog.Infof("danielyecontainerdid: " + in.GetContainerId())
 	cntr, err := c.containerStore.Get(in.GetContainerId())
 	if err != nil {
 		return nil, fmt.Errorf("failed to find container: %w", err)

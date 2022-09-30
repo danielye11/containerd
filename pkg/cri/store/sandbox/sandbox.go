@@ -128,7 +128,7 @@ func (s *Store) List() []Sandbox {
 // UpdateContainerStats updates the sandbox specified by ID with the
 // stats present in 'newContainerStats'. Returns errdefs.ErrNotFound
 // if the sandbox does not exist in the store.
-func (s *Store) UpdateContainerStats(id string, newContainerStats *stats.ContainerStats) error {
+func (s *Store) UpdateCpuContainerStats(id string, newContainerStats *stats.ContainerCpuStats) error {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 	id, err := s.idIndex.Get(id)
@@ -144,7 +144,7 @@ func (s *Store) UpdateContainerStats(id string, newContainerStats *stats.Contain
 	}
 
 	c := s.sandboxes[id]
-	c.Stats = newContainerStats
+	c.Stats.CPUStats = *newContainerStats
 	s.sandboxes[id] = c
 	return nil
 }

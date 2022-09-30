@@ -97,17 +97,17 @@ func (c *criService) getUsageNanoCores(containerID string, isSandbox bool, curre
 	}
 
 	if oldStats == nil {
-		newStats := &stats.ContainerStats{
+		newStats := &stats.ContainerCpuStats{
 			UsageCoreNanoSeconds: currentUsageCoreNanoSeconds,
-			Timestamp:            currentTimestamp,
+			Timestamp:            currentTimestamp.UnixNano(),
 		}
 		if isSandbox {
-			err := c.sandboxStore.UpdateContainerStats(containerID, newStats)
+			err := c.sandboxStore.UpdateCpuContainerStats(containerID, newStats)
 			if err != nil {
 				return 0, fmt.Errorf("failed to update sandbox stats container ID: %s: %w", containerID, err)
 			}
 		} else {
-			err := c.containerStore.UpdateContainerStats(containerID, newStats)
+			err := c.containerStore.UpdateCpuContainerStats(containerID, newStats)
 			if err != nil {
 				return 0, fmt.Errorf("failed to update container stats ID: %s: %w", containerID, err)
 			}
@@ -115,28 +115,28 @@ func (c *criService) getUsageNanoCores(containerID string, isSandbox bool, curre
 		return 0, nil
 	}
 
-	nanoSeconds := currentTimestamp.UnixNano() - oldStats.Timestamp.UnixNano()
+	nanoSeconds := currentTimestamp.UnixNano() - oldStats.CPUStats.Timestamp
 
 	// zero or negative interval
 	if nanoSeconds <= 0 {
 		return 0, nil
 	}
 
-	newUsageNanoCores := uint64(float64(currentUsageCoreNanoSeconds-oldStats.UsageCoreNanoSeconds) /
+	newUsageNanoCores := uint64(float64(currentUsageCoreNanoSeconds-oldStats.CPUStats.UsageCoreNanoSeconds) /
 		float64(nanoSeconds) * float64(time.Second/time.Nanosecond))
 
-	newStats := &stats.ContainerStats{
+	newStats := &stats.ContainerCpuStats{
 		UsageCoreNanoSeconds: currentUsageCoreNanoSeconds,
-		Timestamp:            currentTimestamp,
+		Timestamp:            currentTimestamp.UnixNano(),
 	}
 	if isSandbox {
-		err := c.sandboxStore.UpdateContainerStats(containerID, newStats)
+		err := c.sandboxStore.UpdateCpuContainerStats(containerID, newStats)
 		if err != nil {
 			return 0, fmt.Errorf("failed to update sandbox container stats: %s: %w", containerID, err)
 		}
 
 	} else {
-		err := c.containerStore.UpdateContainerStats(containerID, newStats)
+		err := c.containerStore.UpdateCpuContainerStats(containerID, newStats)
 		if err != nil {
 			return 0, fmt.Errorf("failed to update container stats ID: %s: %w", containerID, err)
 		}

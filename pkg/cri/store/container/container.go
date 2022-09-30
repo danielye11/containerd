@@ -172,7 +172,7 @@ func (s *Store) List() []Container {
 // UpdateContainerStats updates the container specified by ID with the
 // stats present in 'newContainerStats'. Returns errdefs.ErrNotFound
 // if the container does not exist in the store.
-func (s *Store) UpdateContainerStats(id string, newContainerStats *stats.ContainerStats) error {
+func (s *Store) UpdateCpuContainerStats(id string, newContainerStats *stats.ContainerCpuStats) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	id, err := s.idIndex.Get(id)
@@ -188,7 +188,7 @@ func (s *Store) UpdateContainerStats(id string, newContainerStats *stats.Contain
 	}
 
 	c := s.containers[id]
-	c.Stats = newContainerStats
+	c.Stats.CPUStats = *newContainerStats
 	s.containers[id] = c
 	return nil
 }

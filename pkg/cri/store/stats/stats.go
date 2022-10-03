@@ -1,19 +1,31 @@
-package stats
+/*
+   Copyright The containerd Authors.
 
-import (
-	runtime "k8s.io/cri-api/pkg/apis/runtime/v1"
-)
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
+
+package stats
 
 // ContainerStats contains the information about container stats.
 type ContainerStats struct {
-	Attributes      *ContainerAttributes
-	CPUStats        *ContainerCpuStats
-	MemoryStats     *ContainerMemoryStats
-	FileSystemStats *ContainerFileSystemStats
-	CPUStatsUpdate  *ContainerCpuStatsUpdate
+	ContainerAttributes
+	ContainerCPUStats
+	ContainerMemoryStats
+	ContainerFileSystemStats
+	ContainerCpuStatsUpdate
 }
 
-type ContainerCpuStats struct {
+type ContainerCPUStats struct {
 	Timestamp int64
 	// Cumulative CPU usage (sum across all cores) since object creation.
 	UsageCoreNanoSeconds uint64
@@ -41,7 +53,7 @@ type ContainerMemoryStats struct {
 type ContainerFileSystemStats struct {
 	Timestamp int64
 	// The unique identifier of the filesystem.
-	FsId FilesystemIdentifier
+	FsID FilesystemIdentifier
 	// UsedBytes represents the bytes used for images on the filesystem.
 	// This may differ from the total bytes used on the filesystem and may not
 	// equal CapacityBytes - AvailableBytes.
@@ -59,7 +71,7 @@ type FilesystemIdentifier struct {
 
 type ContainerAttributes struct {
 	Id          string
-	Metadata    *runtime.ContainerMetadata
+	Metadata    *ContainerMetadata
 	Labels      map[string]string
 	Annotations map[string]string
 }
@@ -68,4 +80,11 @@ type ContainerCpuStatsUpdate struct {
 	Timestamp int64
 	// Cumulative CPU usage (sum across all cores) since object creation.
 	UsageCoreNanoSeconds uint64
+}
+
+type ContainerMetadata struct {
+	// Name of the container. Same as the container name in the PodSpec.
+	Name string
+	// Attempt number of creating the container. Default: 0.
+	Attempt uint32
 }

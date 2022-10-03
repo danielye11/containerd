@@ -27,10 +27,7 @@ import (
 	"github.com/containerd/containerd/pkg/cri/store/stats"
 	"github.com/containerd/containerd/pkg/truncindex"
 
-	"strconv"
-
 	runtime "k8s.io/cri-api/pkg/apis/runtime/v1"
-	"k8s.io/klog/v2"
 )
 
 // Container contains all resources associated with the container. All methods to
@@ -175,8 +172,7 @@ func (s *Store) List() []Container {
 // UpdateContainerStats updates the container specified by ID with the
 // stats present in 'newContainerStats'. Returns errdefs.ErrNotFound
 // if the container does not exist in the store.
-func (s *Store) UpdateCpuContainerStats(id string, newContainerStats *stats.ContainerCpuStatsUpdate) error {
-	klog.Infof("danielyestats" + strconv.Itoa(int(newContainerStats.Timestamp)) + " " + strconv.Itoa(int(newContainerStats.UsageCoreNanoSeconds)))
+func (s *Store) UpdateCpuContainerStats(id string, newContainerStats stats.ContainerCpuStatsUpdate) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	id, err := s.idIndex.Get(id)
@@ -193,10 +189,8 @@ func (s *Store) UpdateCpuContainerStats(id string, newContainerStats *stats.Cont
 
 	c := s.containers[id]
 	if c.Stats != nil {
-		c.Stats.CPUStats = &stats.ContainerCpuStats{
-			Timestamp:            newContainerStats.Timestamp,
-			UsageCoreNanoSeconds: newContainerStats.UsageCoreNanoSeconds,
-		}
+		c.Stats.ContainerCPUStats.Timestamp = newContainerStats.Timestamp
+		c.Stats.ContainerCPUStats.UsageCoreNanoSeconds = uint64(newContainerStats.Timestamp)
 	}
 	s.containers[id] = c
 	return nil

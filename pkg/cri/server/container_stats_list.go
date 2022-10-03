@@ -97,7 +97,7 @@ func (c *criService) getUsageNanoCores(containerID string, isSandbox bool, curre
 	}
 
 	if oldStats == nil {
-		newStats := &stats.ContainerCpuStats{
+		newStats := &stats.ContainerCpuStatsUpdate{
 			UsageCoreNanoSeconds: currentUsageCoreNanoSeconds,
 			Timestamp:            currentTimestamp.UnixNano(),
 		}
@@ -125,7 +125,7 @@ func (c *criService) getUsageNanoCores(containerID string, isSandbox bool, curre
 	newUsageNanoCores := uint64(float64(currentUsageCoreNanoSeconds-oldStats.CPUStats.UsageCoreNanoSeconds) /
 		float64(nanoSeconds) * float64(time.Second/time.Nanosecond))
 
-	newStats := &stats.ContainerCpuStats{
+	newStats := &stats.ContainerCpuStatsUpdate{
 		UsageCoreNanoSeconds: currentUsageCoreNanoSeconds,
 		Timestamp:            currentTimestamp.UnixNano(),
 	}

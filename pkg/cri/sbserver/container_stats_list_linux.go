@@ -95,7 +95,7 @@ func (c *criService) rawContainerMetrics(
 		usedBytes = sn.Size
 		inodesUsed = sn.Inodes
 	}
-	cs.FileSystemStats = containerstorestats.ContainerFileSystemStats{
+	cs.FileSystemStats = &containerstorestats.ContainerFileSystemStats{
 		FsId: containerstorestats.FilesystemIdentifier{
 			Mountpoint: c.imageFSPath,
 		},
@@ -103,7 +103,7 @@ func (c *criService) rawContainerMetrics(
 		InodesUsed: inodesUsed,
 	}
 
-	cs.Attributes = containerstorestats.ContainerAttributes{
+	cs.Attributes = &containerstorestats.ContainerAttributes{
 		Id:          meta.ID,
 		Metadata:    meta.Config.GetMetadata(),
 		Labels:      meta.Config.GetLabels(),
@@ -120,13 +120,13 @@ func (c *criService) rawContainerMetrics(
 		if err != nil {
 			return nil, fmt.Errorf("failed to obtain cpu stats: %w", err)
 		}
-		cs.CPUStats = *cpuStats
+		cs.CPUStats = cpuStats
 
 		memoryStats, err := c.rawMemoryContainerStats(meta.ID, s, protobuf.FromTimestamp(stats.Timestamp))
 		if err != nil {
 			return nil, fmt.Errorf("failed to obtain memory stats: %w", err)
 		}
-		cs.MemoryStats = *memoryStats
+		cs.MemoryStats = memoryStats
 	}
 	return &cs, nil
 }
@@ -208,24 +208,24 @@ func (c *criService) rawMemoryContainerStats(ID string, stats interface{}, times
 }
 
 func (c *criService) getUsageNanoCores(containerID string, isSandbox bool, currentUsageCoreNanoSeconds uint64, currentTimestamp time.Time) (uint64, error) {
-	var oldStats *stats.ContainerStats
+	var oldStats *stats.ContainerCpuStats
 
 	if isSandbox {
 		sandbox, err := c.sandboxStore.Get(containerID)
 		if err != nil {
 			return 0, fmt.Errorf("failed to get sandbox container: %s: %w", containerID, err)
 		}
-		oldStats = sandbox.Stats
+		oldStats = sandbox.Stats.CPUStats
 	} else {
 		container, err := c.containerStore.Get(containerID)
 		if err != nil {
 			return 0, fmt.Errorf("failed to get container ID: %s: %w", containerID, err)
 		}
-		oldStats = container.Stats
+		oldStats = container.Stats.CPUStats
 	}
 
 	if oldStats == nil {
-		newStats := &stats.ContainerCpuStats{
+		newStats := &stats.ContainerCpuStatsUpdate{
 			UsageCoreNanoSeconds: currentUsageCoreNanoSeconds,
 			Timestamp:            currentTimestamp.UnixNano(),
 		}
@@ -243,17 +243,17 @@ func (c *criService) getUsageNanoCores(containerID string, isSandbox bool, curre
 		return 0, nil
 	}
 
-	nanoSeconds := currentTimestamp.UnixNano() - oldStats.CPUStats.Timestamp
+	nanoSeconds := currentTimestamp.UnixNano() - oldStats.Timestamp
 
 	// zero or negative interval
 	if nanoSeconds <= 0 {
 		return 0, nil
 	}
 
-	newUsageNanoCores := uint64(float64(currentUsageCoreNanoSeconds-oldStats.CPUStats.UsageCoreNanoSeconds) /
+	newUsageNanoCores := uint64(float64(currentUsageCoreNanoSeconds-oldStats.UsageCoreNanoSeconds) /
 		float64(nanoSeconds) * float64(time.Second/time.Nanosecond))
 
-	newStats := &stats.ContainerCpuStats{
+	newStats := &stats.ContainerCpuStatsUpdate{
 		UsageCoreNanoSeconds: currentUsageCoreNanoSeconds,
 		Timestamp:            currentTimestamp.UnixNano(),
 	}

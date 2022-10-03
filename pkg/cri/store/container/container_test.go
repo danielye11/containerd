@@ -136,20 +136,32 @@ func TestContainerStore(t *testing.T) {
 
 	stats := map[string]*stats.ContainerStats{
 		"1": {
-			Timestamp:            time.Now(),
-			UsageCoreNanoSeconds: 1,
+			CPUStats: &stats.ContainerCpuStats{
+				Timestamp:            time.Now().Unix(),
+				UsageCoreNanoSeconds: 1,
+				UsageNanoCores:       3,
+			},
 		},
 		"2abcd": {
-			Timestamp:            time.Now(),
-			UsageCoreNanoSeconds: 2,
+			CPUStats: &stats.ContainerCpuStats{
+				Timestamp:            time.Now().Unix(),
+				UsageCoreNanoSeconds: 2,
+				UsageNanoCores:       4,
+			},
 		},
 		"4a333": {
-			Timestamp:            time.Now(),
-			UsageCoreNanoSeconds: 3,
+			CPUStats: &stats.ContainerCpuStats{
+				Timestamp:            time.Now().Unix(),
+				UsageCoreNanoSeconds: 3,
+				UsageNanoCores:       5,
+			},
 		},
 		"4abcd": {
-			Timestamp:            time.Now(),
-			UsageCoreNanoSeconds: 4,
+			CPUStats: &stats.ContainerCpuStats{
+				Timestamp:            time.Now().Unix(),
+				UsageCoreNanoSeconds: 4,
+				UsageNanoCores:       6,
+			},
 		},
 	}
 	assert := assertlib.New(t)
@@ -192,7 +204,7 @@ func TestContainerStore(t *testing.T) {
 
 	t.Logf("should be able to update stats on container")
 	for id := range containers {
-		err := s.UpdateContainerStats(id, stats[id])
+		err := s.UpdateCpuContainerStats(id, stats[id].CPUStatsUpdate)
 		assert.NoError(err)
 	}
 

@@ -6,10 +6,11 @@ import (
 
 // ContainerStats contains the information about container stats.
 type ContainerStats struct {
-	Attributes      ContainerAttributes
-	CPUStats        ContainerCpuStats
-	MemoryStats     ContainerMemoryStats
-	FileSystemStats ContainerFileSystemStats
+	Attributes      *ContainerAttributes
+	CPUStats        *ContainerCpuStats
+	MemoryStats     *ContainerMemoryStats
+	FileSystemStats *ContainerFileSystemStats
+	CPUStatsUpdate  *ContainerCpuStatsUpdate
 }
 
 type ContainerCpuStats struct {
@@ -61,4 +62,10 @@ type ContainerAttributes struct {
 	Metadata    *runtime.ContainerMetadata
 	Labels      map[string]string
 	Annotations map[string]string
+}
+
+type ContainerCpuStatsUpdate struct {
+	Timestamp int64
+	// Cumulative CPU usage (sum across all cores) since object creation.
+	UsageCoreNanoSeconds uint64
 }

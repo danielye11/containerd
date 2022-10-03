@@ -37,46 +37,37 @@ func (c *criService) containerMetrics(
 	stats *types.Metric,
 ) (*runtime.ContainerStats, error) {
 	var cs runtime.ContainerStats
-	var usedBytes, inodesUsed uint64
-	sn, err := c.snapshotStore.Get(meta.ID)
+	rawMetrics, err := c.rawContainerMetrics(meta, stats)
 	// If snapshotstore doesn't have cached snapshot information
 	// set WritableLayer usage to zero
-	if err == nil {
-		usedBytes = sn.Size
-		inodesUsed = sn.Inodes
-	}
-	cs.WritableLayer = &runtime.FilesystemUsage{
-		Timestamp: sn.Timestamp,
-		FsId: &runtime.FilesystemIdentifier{
-			Mountpoint: c.imageFSPath,
-		},
-		UsedBytes:  &runtime.UInt64Value{Value: usedBytes},
-		InodesUsed: &runtime.UInt64Value{Value: inodesUsed},
+	if err != nil {
+		return nil, fmt.Errorf("failed to extract container metrics: %w", err)
 	}
 	cs.Attributes = &runtime.ContainerAttributes{
-		Id:          meta.ID,
-		Metadata:    meta.Config.GetMetadata(),
-		Labels:      meta.Config.GetLabels(),
-		Annotations: meta.Config.GetAnnotations(),
+		Id:          rawMetrics.Attributes.Id,
+		Metadata:    rawMetrics.Attributes.Metadata,
+		Labels:      rawMetrics.Attributes.Labels,
+		Annotations: rawMetrics.Attributes.Labels,
 	}
-
-	if stats != nil {
-		s, err := typeurl.UnmarshalAny(stats.Data)
-		if err != nil {
-			return nil, fmt.Errorf("failed to extract container metrics: %w", err)
-		}
-
-		cpuStats, err := c.cpuContainerStats(meta.ID, false /* isSandbox */, s, protobuf.FromTimestamp(stats.Timestamp))
-		if err != nil {
-			return nil, fmt.Errorf("failed to obtain cpu stats: %w", err)
-		}
-		cs.Cpu = cpuStats
-
-		memoryStats, err := c.memoryContainerStats(meta.ID, s, protobuf.FromTimestamp(stats.Timestamp))
-		if err != nil {
-			return nil, fmt.Errorf("failed to obtain memory stats: %w", err)
-		}
-		cs.Memory = memoryStats
+	cs.Cpu = &runtime.CpuUsage{
+		Timestamp:            rawMetrics.CPUStats.Timestamp,
+		UsageCoreNanoSeconds: &runtime.UInt64Value{Value: rawMetrics.CPUStats.UsageCoreNanoSeconds},
+		UsageNanoCores:       &runtime.UInt64Value{Value: rawMetrics.CPUStats.UsageNanoCores},
+	}
+	cs.Memory = &runtime.MemoryUsage{
+		Timestamp:       rawMetrics.MemoryStats.Timestamp,
+		WorkingSetBytes: &runtime.UInt64Value{Value: rawMetrics.MemoryStats.WorkingSetBytes},
+		AvailableBytes:  &runtime.UInt64Value{Value: rawMetrics.MemoryStats.AvailableBytes},
+		UsageBytes:      &runtime.UInt64Value{Value: rawMetrics.MemoryStats.UsageBytes},
+		RssBytes:        &runtime.UInt64Value{Value: rawMetrics.MemoryStats.RssBytes},
+		PageFaults:      &runtime.UInt64Value{Value: rawMetrics.MemoryStats.PageFaults},
+		MajorPageFaults: &runtime.UInt64Value{Value: rawMetrics.MemoryStats.MajorPageFaults},
+	}
+	cs.WritableLayer = &runtime.FilesystemUsage{
+		Timestamp:  rawMetrics.FileSystemStats.Timestamp,
+		FsId:       &runtime.FilesystemIdentifier{Mountpoint: rawMetrics.FileSystemStats.FsId.Mountpoint},
+		UsedBytes:  &runtime.UInt64Value{Value: rawMetrics.FileSystemStats.UsedBytes},
+		InodesUsed: &runtime.UInt64Value{Value: rawMetrics.FileSystemStats.InodesUsed},
 	}
 
 	return &cs, nil

@@ -37,43 +37,46 @@ func (c *criService) containerMetrics(
 	stats *types.Metric,
 ) (*runtime.ContainerStats, error) {
 	var cs runtime.ContainerStats
-	rawMetrics, err := c.rawContainerMetrics(meta, stats)
+	generatedMetrics, err := c.generatedContainerMetrics(meta, stats)
 	// If snapshotstore doesn't have cached snapshot information
 	// set WritableLayer usage to zero
 	if err != nil {
 		return nil, fmt.Errorf("failed to extract container metrics: %w", err)
 	}
 	cs.Attributes = &runtime.ContainerAttributes{
-		Id:          rawMetrics.Attributes.Id,
-		Metadata:    rawMetrics.Attributes.Metadata,
-		Labels:      rawMetrics.Attributes.Labels,
-		Annotations: rawMetrics.Attributes.Labels,
+		Id: generatedMetrics.ContainerAttributes.Id,
+		Metadata: &runtime.ContainerMetadata{
+			Name:    generatedMetrics.ContainerAttributes.Metadata.Name,
+			Attempt: generatedMetrics.ContainerAttributes.Metadata.Attempt,
+		},
+		Labels:      generatedMetrics.ContainerAttributes.Labels,
+		Annotations: generatedMetrics.ContainerAttributes.Labels,
 	}
 	cs.Cpu = &runtime.CpuUsage{
-		Timestamp:            rawMetrics.CPUStats.Timestamp,
-		UsageCoreNanoSeconds: &runtime.UInt64Value{Value: rawMetrics.CPUStats.UsageCoreNanoSeconds},
-		UsageNanoCores:       &runtime.UInt64Value{Value: rawMetrics.CPUStats.UsageNanoCores},
+		Timestamp:            generatedMetrics.ContainerCPUStats.Timestamp,
+		UsageCoreNanoSeconds: &runtime.UInt64Value{Value: generatedMetrics.ContainerCPUStats.UsageCoreNanoSeconds},
+		UsageNanoCores:       &runtime.UInt64Value{Value: generatedMetrics.ContainerCPUStats.UsageNanoCores},
 	}
 	cs.Memory = &runtime.MemoryUsage{
-		Timestamp:       rawMetrics.MemoryStats.Timestamp,
-		WorkingSetBytes: &runtime.UInt64Value{Value: rawMetrics.MemoryStats.WorkingSetBytes},
-		AvailableBytes:  &runtime.UInt64Value{Value: rawMetrics.MemoryStats.AvailableBytes},
-		UsageBytes:      &runtime.UInt64Value{Value: rawMetrics.MemoryStats.UsageBytes},
-		RssBytes:        &runtime.UInt64Value{Value: rawMetrics.MemoryStats.RssBytes},
-		PageFaults:      &runtime.UInt64Value{Value: rawMetrics.MemoryStats.PageFaults},
-		MajorPageFaults: &runtime.UInt64Value{Value: rawMetrics.MemoryStats.MajorPageFaults},
+		Timestamp:       generatedMetrics.ContainerMemoryStats.Timestamp,
+		WorkingSetBytes: &runtime.UInt64Value{Value: generatedMetrics.ContainerMemoryStats.WorkingSetBytes},
+		AvailableBytes:  &runtime.UInt64Value{Value: generatedMetrics.ContainerMemoryStats.AvailableBytes},
+		UsageBytes:      &runtime.UInt64Value{Value: generatedMetrics.ContainerMemoryStats.UsageBytes},
+		RssBytes:        &runtime.UInt64Value{Value: generatedMetrics.ContainerMemoryStats.RssBytes},
+		PageFaults:      &runtime.UInt64Value{Value: generatedMetrics.ContainerMemoryStats.PageFaults},
+		MajorPageFaults: &runtime.UInt64Value{Value: generatedMetrics.ContainerMemoryStats.MajorPageFaults},
 	}
 	cs.WritableLayer = &runtime.FilesystemUsage{
-		Timestamp:  rawMetrics.FileSystemStats.Timestamp,
-		FsId:       &runtime.FilesystemIdentifier{Mountpoint: rawMetrics.FileSystemStats.FsId.Mountpoint},
-		UsedBytes:  &runtime.UInt64Value{Value: rawMetrics.FileSystemStats.UsedBytes},
-		InodesUsed: &runtime.UInt64Value{Value: rawMetrics.FileSystemStats.InodesUsed},
+		Timestamp:  generatedMetrics.ContainerFileSystemStats.Timestamp,
+		FsId:       &runtime.FilesystemIdentifier{Mountpoint: generatedMetrics.ContainerFileSystemStats.FsID.Mountpoint},
+		UsedBytes:  &runtime.UInt64Value{Value: generatedMetrics.ContainerFileSystemStats.UsedBytes},
+		InodesUsed: &runtime.UInt64Value{Value: generatedMetrics.ContainerFileSystemStats.InodesUsed},
 	}
 
 	return &cs, nil
 }
 
-func (c *criService) rawContainerMetrics(
+func (c *criService) generatedContainerMetrics(
 	meta containerstore.Metadata,
 	stats *types.Metric,
 ) (*containerstorestats.ContainerStats, error) {
@@ -86,17 +89,22 @@ func (c *criService) rawContainerMetrics(
 		usedBytes = sn.Size
 		inodesUsed = sn.Inodes
 	}
-	cs.FileSystemStats = &containerstorestats.ContainerFileSystemStats{
-		FsId: containerstorestats.FilesystemIdentifier{
+	cs.ContainerFileSystemStats = containerstorestats.ContainerFileSystemStats{
+		FsID: containerstorestats.FilesystemIdentifier{
 			Mountpoint: c.imageFSPath,
 		},
 		UsedBytes:  usedBytes,
 		InodesUsed: inodesUsed,
 	}
 
-	cs.Attributes = &containerstorestats.ContainerAttributes{
-		Id:          meta.ID,
-		Metadata:    meta.Config.GetMetadata(),
+	metadata := meta.Config.GetMetadata()
+
+	cs.ContainerAttributes = containerstorestats.ContainerAttributes{
+		Id: meta.ID,
+		Metadata: &containerstorestats.ContainerMetadata{
+			Name:    metadata.GetName(),
+			Attempt: metadata.GetAttempt(),
+		},
 		Labels:      meta.Config.GetLabels(),
 		Annotations: meta.Config.GetAnnotations(),
 	}
@@ -107,22 +115,22 @@ func (c *criService) rawContainerMetrics(
 			return nil, fmt.Errorf("failed to extract container metrics: %w", err)
 		}
 
-		cpuStats, err := c.rawCpuContainerStats(meta.ID, false /* isSandbox */, s, protobuf.FromTimestamp(stats.Timestamp))
+		cpuStats, err := c.generatedCPUContainerStats(meta.ID, false /* isSandbox */, s, protobuf.FromTimestamp(stats.Timestamp))
 		if err != nil {
 			return nil, fmt.Errorf("failed to obtain cpu stats: %w", err)
 		}
-		cs.CPUStats = cpuStats
+		cs.ContainerCPUStats = *cpuStats
 
-		memoryStats, err := c.rawMemoryContainerStats(meta.ID, s, protobuf.FromTimestamp(stats.Timestamp))
+		memoryStats, err := c.generatedMemoryContainerStats(meta.ID, s, protobuf.FromTimestamp(stats.Timestamp))
 		if err != nil {
 			return nil, fmt.Errorf("failed to obtain memory stats: %w", err)
 		}
-		cs.MemoryStats = memoryStats
+		cs.ContainerMemoryStats = *memoryStats
 	}
 	return &cs, nil
 }
 
-func (c *criService) rawCpuContainerStats(ID string, isSandbox bool, stats interface{}, timestamp time.Time) (*containerstorestats.ContainerCpuStats, error) {
+func (c *criService) generatedCPUContainerStats(ID string, isSandbox bool, stats interface{}, timestamp time.Time) (*containerstorestats.ContainerCPUStats, error) {
 	switch metrics := stats.(type) {
 	case *v1.Metrics:
 		if metrics.CPU != nil && metrics.CPU.Usage != nil {
@@ -132,7 +140,7 @@ func (c *criService) rawCpuContainerStats(ID string, isSandbox bool, stats inter
 				return nil, fmt.Errorf("failed to get usage nano cores, containerID: %s: %w", ID, err)
 			}
 
-			return &containerstorestats.ContainerCpuStats{
+			return &containerstorestats.ContainerCPUStats{
 				Timestamp:            timestamp.UnixNano(),
 				UsageCoreNanoSeconds: metrics.CPU.Usage.Total,
 				UsageNanoCores:       usageNanoCores,
@@ -148,7 +156,7 @@ func (c *criService) rawCpuContainerStats(ID string, isSandbox bool, stats inter
 				return nil, fmt.Errorf("failed to get usage nano cores, containerID: %s: %w", ID, err)
 			}
 
-			return &containerstorestats.ContainerCpuStats{
+			return &containerstorestats.ContainerCPUStats{
 				Timestamp:            timestamp.UnixNano(),
 				UsageCoreNanoSeconds: usageCoreNanoSeconds,
 				UsageNanoCores:       usageNanoCores,
@@ -160,7 +168,7 @@ func (c *criService) rawCpuContainerStats(ID string, isSandbox bool, stats inter
 	return nil, nil
 }
 
-func (c *criService) rawMemoryContainerStats(ID string, stats interface{}, timestamp time.Time) (*containerstorestats.ContainerMemoryStats, error) {
+func (c *criService) generatedMemoryContainerStats(ID string, stats interface{}, timestamp time.Time) (*containerstorestats.ContainerMemoryStats, error) {
 	switch metrics := stats.(type) {
 	case *v1.Metrics:
 		if metrics.Memory != nil && metrics.Memory.Usage != nil {
@@ -199,24 +207,24 @@ func (c *criService) rawMemoryContainerStats(ID string, stats interface{}, times
 }
 
 func (c *criService) getUsageNanoCores(containerID string, isSandbox bool, currentUsageCoreNanoSeconds uint64, currentTimestamp time.Time) (uint64, error) {
-	var oldStats *stats.ContainerCpuStats
+	var oldStats *stats.ContainerCPUStats
 
 	if isSandbox {
 		sandbox, err := c.sandboxStore.Get(containerID)
 		if err != nil {
 			return 0, fmt.Errorf("failed to get sandbox container: %s: %w", containerID, err)
 		}
-		oldStats = sandbox.Stats.CPUStats
+		oldStats = &sandbox.Stats.ContainerCPUStats
 	} else {
 		container, err := c.containerStore.Get(containerID)
 		if err != nil {
 			return 0, fmt.Errorf("failed to get container ID: %s: %w", containerID, err)
 		}
-		oldStats = container.Stats.CPUStats
+		oldStats = &container.Stats.ContainerCPUStats
 	}
 
 	if oldStats == nil {
-		newStats := &stats.ContainerCpuStatsUpdate{
+		newStats := stats.ContainerCpuStatsUpdate{
 			UsageCoreNanoSeconds: currentUsageCoreNanoSeconds,
 			Timestamp:            currentTimestamp.UnixNano(),
 		}
@@ -244,7 +252,7 @@ func (c *criService) getUsageNanoCores(containerID string, isSandbox bool, curre
 	newUsageNanoCores := uint64(float64(currentUsageCoreNanoSeconds-oldStats.UsageCoreNanoSeconds) /
 		float64(nanoSeconds) * float64(time.Second/time.Nanosecond))
 
-	newStats := &stats.ContainerCpuStatsUpdate{
+	newStats := stats.ContainerCpuStatsUpdate{
 		UsageCoreNanoSeconds: currentUsageCoreNanoSeconds,
 		Timestamp:            currentTimestamp.UnixNano(),
 	}
@@ -345,48 +353,6 @@ func (c *criService) cpuContainerStats(ID string, isSandbox bool, stats interfac
 				Timestamp:            timestamp.UnixNano(),
 				UsageCoreNanoSeconds: &runtime.UInt64Value{Value: usageCoreNanoSeconds},
 				UsageNanoCores:       &runtime.UInt64Value{Value: usageNanoCores},
-			}, nil
-		}
-	default:
-		return nil, fmt.Errorf("unexpected metrics type: %v", metrics)
-	}
-	return nil, nil
-}
-
-func (c *criService) memoryContainerStats(ID string, stats interface{}, timestamp time.Time) (*runtime.MemoryUsage, error) {
-	switch metrics := stats.(type) {
-	case *v1.Metrics:
-		if metrics.Memory != nil && metrics.Memory.Usage != nil {
-			workingSetBytes := getWorkingSet(metrics.Memory)
-
-			return &runtime.MemoryUsage{
-				Timestamp: timestamp.UnixNano(),
-				WorkingSetBytes: &runtime.UInt64Value{
-					Value: workingSetBytes,
-				},
-				AvailableBytes:  &runtime.UInt64Value{Value: getAvailableBytes(metrics.Memory, workingSetBytes)},
-				UsageBytes:      &runtime.UInt64Value{Value: metrics.Memory.Usage.Usage},
-				RssBytes:        &runtime.UInt64Value{Value: metrics.Memory.TotalRSS},
-				PageFaults:      &runtime.UInt64Value{Value: metrics.Memory.TotalPgFault},
-				MajorPageFaults: &runtime.UInt64Value{Value: metrics.Memory.TotalPgMajFault},
-			}, nil
-		}
-	case *v2.Metrics:
-		if metrics.Memory != nil {
-			workingSetBytes := getWorkingSetV2(metrics.Memory)
-
-			return &runtime.MemoryUsage{
-				Timestamp: timestamp.UnixNano(),
-				WorkingSetBytes: &runtime.UInt64Value{
-					Value: workingSetBytes,
-				},
-				AvailableBytes: &runtime.UInt64Value{Value: getAvailableBytesV2(metrics.Memory, workingSetBytes)},
-				UsageBytes:     &runtime.UInt64Value{Value: metrics.Memory.Usage},
-				// Use Anon memory for RSS as cAdvisor on cgroupv2
-				// see https://github.com/google/cadvisor/blob/a9858972e75642c2b1914c8d5428e33e6392c08a/container/libcontainer/handler.go#L799
-				RssBytes:        &runtime.UInt64Value{Value: metrics.Memory.Anon},
-				PageFaults:      &runtime.UInt64Value{Value: metrics.Memory.Pgfault},
-				MajorPageFaults: &runtime.UInt64Value{Value: metrics.Memory.Pgmajfault},
 			}, nil
 		}
 	default:

@@ -113,28 +113,28 @@ func TestSandboxStore(t *testing.T) {
 	)
 	stats := map[string]*stats.ContainerStats{
 		"1": {
-			CPUStats: &stats.ContainerCpuStats{
+			ContainerCPUStats: stats.ContainerCPUStats{
 				Timestamp:            time.Now().Unix(),
 				UsageCoreNanoSeconds: 1,
 				UsageNanoCores:       3,
 			},
 		},
 		"2abcd": {
-			CPUStats: &stats.ContainerCpuStats{
+			ContainerCPUStats: stats.ContainerCPUStats{
 				Timestamp:            time.Now().Unix(),
 				UsageCoreNanoSeconds: 2,
 				UsageNanoCores:       4,
 			},
 		},
 		"4a333": {
-			CPUStats: &stats.ContainerCpuStats{
+			ContainerCPUStats: stats.ContainerCPUStats{
 				Timestamp:            time.Now().Unix(),
 				UsageCoreNanoSeconds: 3,
 				UsageNanoCores:       5,
 			},
 		},
 		"4abcd": {
-			CPUStats: &stats.ContainerCpuStats{
+			ContainerCPUStats: stats.ContainerCPUStats{
 				Timestamp:            time.Now().Unix(),
 				UsageCoreNanoSeconds: 4,
 				UsageNanoCores:       6,
@@ -170,7 +170,7 @@ func TestSandboxStore(t *testing.T) {
 
 	t.Logf("should be able to update stats on container")
 	for id := range sandboxes {
-		err := s.UpdateCpuContainerStats(id, stats[id].CPUStatsUpdate)
+		err := s.UpdateCpuContainerStats(id, stats[id].ContainerCpuStatsUpdate)
 		assert.NoError(err)
 	}
 

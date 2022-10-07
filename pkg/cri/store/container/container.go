@@ -190,8 +190,29 @@ func (s *Store) UpdateCpuContainerStats(id string, newContainerStats stats.Conta
 	c := s.containers[id]
 	if c.Stats != nil {
 		c.Stats.ContainerCPUStats.Timestamp = newContainerStats.Timestamp
-		c.Stats.ContainerCPUStats.UsageCoreNanoSeconds = uint64(newContainerStats.Timestamp)
+		c.Stats.ContainerCPUStats.UsageCoreNanoSeconds = uint64(newContainerStats.UsageCoreNanoSeconds)
 	}
+	s.containers[id] = c
+	return nil
+}
+
+func (s *Store) UpdateContainerStats(id string, newContainerStats stats.ContainerStats) error {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	id, err := s.idIndex.Get(id)
+	if err != nil {
+		if err == truncindex.ErrNotExist {
+			err = errdefs.ErrNotFound
+		}
+		return err
+	}
+
+	if _, ok := s.containers[id]; !ok {
+		return errdefs.ErrNotFound
+	}
+
+	c := s.containers[id]
+	c.Stats = &newContainerStats
 	s.containers[id] = c
 	return nil
 }

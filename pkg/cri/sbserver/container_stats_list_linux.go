@@ -43,14 +43,12 @@ func (c *criService) containerMetrics(
 	if err != nil {
 		return nil, fmt.Errorf("failed to extract container metrics: %w", err)
 	}
+
 	cs.Attributes = &runtime.ContainerAttributes{
-		Id: generatedMetrics.ContainerAttributes.Id,
-		Metadata: &runtime.ContainerMetadata{
-			Name:    generatedMetrics.ContainerAttributes.Metadata.Name,
-			Attempt: generatedMetrics.ContainerAttributes.Metadata.Attempt,
-		},
-		Labels:      generatedMetrics.ContainerAttributes.Labels,
-		Annotations: generatedMetrics.ContainerAttributes.Labels,
+		Id:          meta.ID,
+		Metadata:    meta.Config.GetMetadata(),
+		Labels:      meta.Config.GetLabels(),
+		Annotations: meta.Config.GetAnnotations(),
 	}
 	cs.Cpu = &runtime.CpuUsage{
 		Timestamp:            generatedMetrics.ContainerCPUStats.Timestamp,
@@ -97,22 +95,15 @@ func (c *criService) generatedContainerMetrics(
 		InodesUsed: inodesUsed,
 	}
 
-	metadata := meta.Config.GetMetadata()
-
-	cs.ContainerAttributes = containerstorestats.ContainerAttributes{
-		Id: meta.ID,
-		Metadata: &containerstorestats.ContainerMetadata{
-			Name:    metadata.GetName(),
-			Attempt: metadata.GetAttempt(),
-		},
-		Labels:      meta.Config.GetLabels(),
-		Annotations: meta.Config.GetAnnotations(),
-	}
-
 	if stats != nil {
 		s, err := typeurl.UnmarshalAny(stats.Data)
 		if err != nil {
 			return nil, fmt.Errorf("failed to extract container metrics: %w", err)
+		}
+
+		err = c.setContainerStats(meta.ID, false, cs)
+		if err != nil {
+			return nil, fmt.Errorf("failed to set container stats: %w", err)
 		}
 
 		cpuStats, err := c.generatedCPUContainerStats(meta.ID, false /* isSandbox */, s, protobuf.FromTimestamp(stats.Timestamp))
@@ -204,6 +195,41 @@ func (c *criService) generatedMemoryContainerStats(ID string, stats interface{},
 		return nil, fmt.Errorf("unexpected metrics type: %v", metrics)
 	}
 	return nil, nil
+}
+
+func (c *criService) setContainerStats(containerID string, isSandbox bool, cs containerstorestats.ContainerStats) error {
+	var oldStats *stats.ContainerStats
+
+	if isSandbox {
+		sandbox, err := c.sandboxStore.Get(containerID)
+		if err != nil {
+			return fmt.Errorf("failed to get sandbox container: %s: %w", containerID, err)
+		}
+		oldStats = sandbox.Stats
+	} else {
+		container, err := c.containerStore.Get(containerID)
+		if err != nil {
+			return fmt.Errorf("failed to get container ID: %s: %w", containerID, err)
+		}
+		oldStats = container.Stats
+	}
+
+	if oldStats == nil {
+		if isSandbox {
+			err := c.sandboxStore.UpdateContainerStats(containerID, cs)
+			if err != nil {
+				return fmt.Errorf("failed to update sandbox stats container ID: %s: %w", containerID, err)
+			}
+		} else {
+			err := c.containerStore.UpdateContainerStats(containerID, cs)
+			if err != nil {
+				return fmt.Errorf("failed to update container stats ID: %s: %w", containerID, err)
+			}
+		}
+		return nil
+	}
+
+	return nil
 }
 
 func (c *criService) getUsageNanoCores(containerID string, isSandbox bool, currentUsageCoreNanoSeconds uint64, currentTimestamp time.Time) (uint64, error) {

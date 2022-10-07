@@ -18,7 +18,6 @@ package stats
 
 // ContainerStats contains the information about container stats.
 type ContainerStats struct {
-	ContainerAttributes
 	ContainerCPUStats
 	ContainerMemoryStats
 	ContainerFileSystemStats

@@ -71,6 +71,7 @@ func (c *criService) podSandboxStats(
 		if err != nil {
 			return nil, fmt.Errorf("failed to obtain memory stats: %w", err)
 		}
+
 		podSandboxStats.Linux.Memory = &runtime.MemoryUsage{
 			Timestamp:       memoryStats.Timestamp,
 			WorkingSetBytes: &runtime.UInt64Value{Value: memoryStats.WorkingSetBytes},

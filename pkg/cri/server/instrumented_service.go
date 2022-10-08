@@ -1665,3 +1665,19 @@ func v1RespToAlphaResp(
 	}
 	return nil
 }
+
+func (in *instrumentedService) ListPodSandboxMetrics(ctx context.Context, r *runtime.ListPodSandboxMetricsRequest) (res *runtime.ListPodSandboxMetricsResponse, err error) {
+	if err := in.checkInitialized(); err != nil {
+		return nil, err
+	}
+	log.G(ctx).Tracef("ListPodSandboxMetrics")
+	defer func() {
+		if err != nil {
+			log.G(ctx).WithError(err).Error("ListPodSandboxMetrics failed")
+		} else {
+			log.G(ctx).Tracef("ListPodSandboxMetrics returns stats %+v", res.GetPodMetrics())
+		}
+	}()
+	res, err = in.c.ListPodSandboxMetrics(ctrdutil.WithNamespace(ctx), r)
+	return res, errdefs.ToGRPC(err)
+}

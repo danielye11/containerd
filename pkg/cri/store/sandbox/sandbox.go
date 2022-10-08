@@ -193,3 +193,25 @@ func (s *Store) Delete(id string) {
 	s.idIndex.Delete(id) // nolint: errcheck
 	delete(s.sandboxes, id)
 }
+
+func (s *Store) UpdateContainerMetrics(id string, newContainerStats stats.ContainerStats) error {
+	s.lock.RLock()
+	defer s.lock.RUnlock()
+	id, err := s.idIndex.Get(id)
+	if err != nil {
+		if err == truncindex.ErrNotExist {
+			err = errdefs.ErrNotFound
+		}
+		return err
+	}
+
+	if _, ok := s.sandboxes[id]; !ok {
+		return errdefs.ErrNotFound
+	}
+
+	c := s.sandboxes[id]
+
+	c.Stats = &newContainerStats
+	s.sandboxes[id] = c
+	return nil
+}

@@ -24,6 +24,12 @@ type ContainerStats struct {
 	ContainerCpuStatsUpdate
 }
 
+type ContainerMetrics struct {
+	ContainerCPUMetrics
+	ContainerMemoryMetrics
+	ContainerProcessMetrics
+}
+
 type ContainerCPUStats struct {
 	Timestamp int64
 	// Cumulative CPU usage (sum across all cores) since object creation.
@@ -68,22 +74,41 @@ type FilesystemIdentifier struct {
 	Mountpoint string
 }
 
-type ContainerAttributes struct {
-	Id          string
-	Metadata    *ContainerMetadata
-	Labels      map[string]string
-	Annotations map[string]string
-}
-
 type ContainerCpuStatsUpdate struct {
 	Timestamp int64
 	// Cumulative CPU usage (sum across all cores) since object creation.
 	UsageCoreNanoSeconds uint64
 }
 
-type ContainerMetadata struct {
-	// Name of the container. Same as the container name in the PodSpec.
-	Name string
-	// Attempt number of creating the container. Default: 0.
-	Attempt uint32
+type ContainerCPUMetrics struct {
+	// Number of elapsed enforcement period intervals
+	CpuCfsThrottledPeriodsTotal uint64
+	// Total time duration the container has been throttled
+	CpuCfsThrottledSecondsTotal uint64
+	// Cumulative system cpu time consumed in seconds
+	CpuSystemSecondsTotal uint64
+	// Cumulative cpu time consumed in seconds
+	CpuUsageSecondsTotal uint64
+	// Cumulative user cpu time consumed in seconds
+	CpuUserSecondsTotal uint64
+}
+
+type ContainerMemoryMetrics struct {
+	//Number of bytes of page cache memory
+	MemoryCache uint64
+	//Number of memory usage hits limits
+	MemoryFailCnt uint64
+	//Maximum memory usage recorded in bytes
+	MaxUsageBytes uint64
+}
+
+type ContainerProcessMetrics struct {
+	// Number of open file descriptors for the container
+	FileDescriptorCount uint64
+	// Number of open sockets for the container
+	SocketCount uint64
+	// Maximum number of threads allowed inside the container, infinity if value is zero
+	MaxThreads uint64
+	// Number of threads running inside the container
+	ThreadsCount uint64
 }

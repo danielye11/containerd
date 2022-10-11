@@ -55,6 +55,7 @@ func (c *criService) containerMetrics(
 		UsageCoreNanoSeconds: &runtime.UInt64Value{Value: generatedMetrics.ContainerCPUStats.UsageCoreNanoSeconds},
 		UsageNanoCores:       &runtime.UInt64Value{Value: generatedMetrics.ContainerCPUStats.UsageNanoCores},
 	}
+
 	cs.Memory = &runtime.MemoryUsage{
 		Timestamp:       generatedMetrics.ContainerMemoryStats.Timestamp,
 		WorkingSetBytes: &runtime.UInt64Value{Value: generatedMetrics.ContainerMemoryStats.WorkingSetBytes},

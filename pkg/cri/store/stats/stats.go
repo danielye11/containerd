@@ -21,7 +21,6 @@ type ContainerStats struct {
 	ContainerCPUStats
 	ContainerMemoryStats
 	ContainerFileSystemStats
-	ContainerCpuStatsUpdate
 }
 
 type ContainerCPUStats struct {
@@ -66,24 +65,4 @@ type ContainerFileSystemStats struct {
 type FilesystemIdentifier struct {
 	// Mountpoint of a filesystem.
 	Mountpoint string
-}
-
-type ContainerAttributes struct {
-	Id          string
-	Metadata    *ContainerMetadata
-	Labels      map[string]string
-	Annotations map[string]string
-}
-
-type ContainerCpuStatsUpdate struct {
-	Timestamp int64
-	// Cumulative CPU usage (sum across all cores) since object creation.
-	UsageCoreNanoSeconds uint64
-}
-
-type ContainerMetadata struct {
-	// Name of the container. Same as the container name in the PodSpec.
-	Name string
-	// Attempt number of creating the container. Default: 0.
-	Attempt uint32
 }

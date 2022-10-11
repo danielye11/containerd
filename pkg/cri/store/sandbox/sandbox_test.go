@@ -170,7 +170,7 @@ func TestSandboxStore(t *testing.T) {
 
 	t.Logf("should be able to update stats on container")
 	for id := range sandboxes {
-		err := s.UpdateCpuContainerStats(id, stats[id].ContainerCpuStatsUpdate)
+		err := s.UpdateContainerStats(id, *stats[id])
 		assert.NoError(err)
 	}
 

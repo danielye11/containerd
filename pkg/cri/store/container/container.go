@@ -172,30 +172,6 @@ func (s *Store) List() []Container {
 // UpdateContainerStats updates the container specified by ID with the
 // stats present in 'newContainerStats'. Returns errdefs.ErrNotFound
 // if the container does not exist in the store.
-func (s *Store) UpdateCpuContainerStats(id string, newContainerStats stats.ContainerCpuStatsUpdate) error {
-	s.lock.Lock()
-	defer s.lock.Unlock()
-	id, err := s.idIndex.Get(id)
-	if err != nil {
-		if err == truncindex.ErrNotExist {
-			err = errdefs.ErrNotFound
-		}
-		return err
-	}
-
-	if _, ok := s.containers[id]; !ok {
-		return errdefs.ErrNotFound
-	}
-
-	c := s.containers[id]
-	if c.Stats != nil {
-		c.Stats.ContainerCPUStats.Timestamp = newContainerStats.Timestamp
-		c.Stats.ContainerCPUStats.UsageCoreNanoSeconds = uint64(newContainerStats.UsageCoreNanoSeconds)
-	}
-	s.containers[id] = c
-	return nil
-}
-
 func (s *Store) UpdateContainerStats(id string, newContainerStats stats.ContainerStats) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()

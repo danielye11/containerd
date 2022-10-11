@@ -128,35 +128,6 @@ func (s *Store) List() []Sandbox {
 // UpdateContainerStats updates the sandbox specified by ID with the
 // stats present in 'newContainerStats'. Returns errdefs.ErrNotFound
 // if the sandbox does not exist in the store.
-func (s *Store) UpdateCpuContainerStats(id string, newContainerStats stats.ContainerCpuStatsUpdate) error {
-	// klog.Infof("danielyestats: " + stats)
-	s.lock.RLock()
-	defer s.lock.RUnlock()
-	id, err := s.idIndex.Get(id)
-	if err != nil {
-		if err == truncindex.ErrNotExist {
-			err = errdefs.ErrNotFound
-		}
-		return err
-	}
-
-	if _, ok := s.sandboxes[id]; !ok {
-		return errdefs.ErrNotFound
-	}
-
-	c := s.sandboxes[id]
-
-	c.Stats.ContainerCPUStats.Timestamp = newContainerStats.Timestamp
-	c.Stats.ContainerCPUStats.UsageCoreNanoSeconds = uint64(newContainerStats.Timestamp)
-	//  = &stats.ContainerCpuStats{
-	// 	Timestamp:            newContainerStats.Timestamp,
-	// 	UsageCoreNanoSeconds: newContainerStats.UsageCoreNanoSeconds,
-	// }
-
-	s.sandboxes[id] = c
-	return nil
-}
-
 func (s *Store) UpdateContainerStats(id string, newContainerStats stats.ContainerStats) error {
 	s.lock.RLock()
 	defer s.lock.RUnlock()

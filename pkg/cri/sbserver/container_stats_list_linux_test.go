@@ -204,7 +204,7 @@ func TestContainerMetricsCPU(t *testing.T) {
 			err = c.containerStore.Add(container)
 			assert.NoError(t, err)
 
-			cpuUsage, err := c.cpuContainerStats(ID, false, test.firstMetrics, timestamp)
+			cpuUsage, err := c.generatedCPUContainerStats(ID, false, test.firstMetrics, timestamp)
 			assert.NoError(t, err)
 
 			container, err = c.containerStore.Get(ID)
@@ -213,7 +213,7 @@ func TestContainerMetricsCPU(t *testing.T) {
 
 			assert.Equal(t, test.expectedFirst, cpuUsage)
 
-			cpuUsage, err = c.cpuContainerStats(ID, false, test.secondMetrics, secondAfterTimeStamp)
+			cpuUsage, err = c.generatedCPUContainerStats(ID, false, test.secondMetrics, secondAfterTimeStamp)
 			assert.NoError(t, err)
 			assert.Equal(t, test.expectedSecond, cpuUsage)
 

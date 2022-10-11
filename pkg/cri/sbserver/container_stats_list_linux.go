@@ -133,9 +133,14 @@ func (c *criService) generatedCPUContainerStats(ID string, isSandbox bool, stats
 			}
 
 			return &containerstorestats.ContainerCPUStats{
-				Timestamp:            timestamp.UnixNano(),
-				UsageCoreNanoSeconds: metrics.CPU.Usage.Total,
-				UsageNanoCores:       usageNanoCores,
+				Timestamp:                   timestamp.UnixNano(),
+				UsageCoreNanoSeconds:        metrics.CPU.Usage.Total,
+				UsageNanoCores:              usageNanoCores,
+				CpuCfsThrottledPeriodsTotal: metrics.CPU.Throttling.ThrottledPeriods,
+				CpuCfsThrottledSecondsTotal: metrics.CPU.Throttling.ThrottledTime / uint64(time.Second),
+				CpuSystemSecondsTotal:       metrics.CPU.Usage.Kernel,
+				CpuUsageSecondsTotal:        metrics.CPU.Usage.Total,
+				CpuUserSecondsTotal:         metrics.CPU.Usage.User,
 			}, nil
 		}
 	case *v2.Metrics:
@@ -149,9 +154,14 @@ func (c *criService) generatedCPUContainerStats(ID string, isSandbox bool, stats
 			}
 
 			return &containerstorestats.ContainerCPUStats{
-				Timestamp:            timestamp.UnixNano(),
-				UsageCoreNanoSeconds: usageCoreNanoSeconds,
-				UsageNanoCores:       usageNanoCores,
+				Timestamp:                   timestamp.UnixNano(),
+				UsageCoreNanoSeconds:        usageCoreNanoSeconds,
+				UsageNanoCores:              usageNanoCores,
+				CpuCfsThrottledPeriodsTotal: metrics.CPU.NrPeriods,
+				CpuCfsThrottledSecondsTotal: metrics.CPU.NrThrottled / uint64(time.Second),
+				CpuSystemSecondsTotal:       metrics.CPU.SystemUsec,
+				CpuUsageSecondsTotal:        metrics.CPU.UsageUsec,
+				CpuUserSecondsTotal:         metrics.CPU.UserUsec,
 			}, nil
 		}
 	default:
@@ -174,6 +184,9 @@ func (c *criService) generatedMemoryContainerStats(ID string, stats interface{},
 				RssBytes:        metrics.Memory.TotalRSS,
 				PageFaults:      metrics.Memory.TotalPgFault,
 				MajorPageFaults: metrics.Memory.TotalPgMajFault,
+				MemoryCache:     metrics.Memory.Cache,
+				MemoryFailCnt:   metrics.Memory.Usage.Failcnt,
+				MaxUsageBytes:   metrics.Memory.Usage.Max,
 			}, nil
 		}
 	case *v2.Metrics:
@@ -190,6 +203,7 @@ func (c *criService) generatedMemoryContainerStats(ID string, stats interface{},
 				RssBytes:        metrics.Memory.Anon,
 				PageFaults:      metrics.Memory.Pgfault,
 				MajorPageFaults: metrics.Memory.Pgmajfault,
+				MemoryCache:     metrics.Memory.Cache,
 			}, nil
 		}
 	default:

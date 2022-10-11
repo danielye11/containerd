@@ -21,6 +21,7 @@ type ContainerStats struct {
 	ContainerCPUStats
 	ContainerMemoryStats
 	ContainerFileSystemStats
+	ContainerProcessMetrics
 }
 
 type ContainerCPUStats struct {
@@ -30,6 +31,16 @@ type ContainerCPUStats struct {
 	// Total CPU usage (sum of all cores) averaged over the sample window.
 	// The "core" unit can be interpreted as CPU core-nanoseconds per second.
 	UsageNanoCores uint64
+	// Number of elapsed enforcement period intervals
+	CpuCfsThrottledPeriodsTotal uint64
+	// Total time duration the container has been throttled
+	CpuCfsThrottledSecondsTotal uint64
+	// Cumulative system cpu time consumed in seconds
+	CpuSystemSecondsTotal uint64
+	// Cumulative cpu time consumed in seconds
+	CpuUsageSecondsTotal uint64
+	// Cumulative user cpu time consumed in seconds
+	CpuUserSecondsTotal uint64
 }
 
 type ContainerMemoryStats struct {
@@ -46,6 +57,12 @@ type ContainerMemoryStats struct {
 	PageFaults uint64
 	// Cumulative number of major page faults.
 	MajorPageFaults uint64
+	//Number of bytes of page cache memory
+	MemoryCache uint64
+	//Number of memory usage hits limits
+	MemoryFailCnt uint64
+	//Maximum memory usage recorded in bytes
+	MaxUsageBytes uint64
 }
 
 type ContainerFileSystemStats struct {
@@ -65,4 +82,15 @@ type ContainerFileSystemStats struct {
 type FilesystemIdentifier struct {
 	// Mountpoint of a filesystem.
 	Mountpoint string
+}
+
+type ContainerProcessMetrics struct {
+	// Number of open file descriptors for the container
+	FileDescriptorCount uint64
+	// Number of open sockets for the container
+	SocketCount uint64
+	// Maximum number of threads allowed inside the container, infinity if value is zero
+	MaxThreads uint64
+	// Number of threads running inside the container
+	ThreadsCount uint64
 }

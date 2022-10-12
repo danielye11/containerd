@@ -203,7 +203,7 @@ func (c *criService) generatedMemoryContainerStats(ID string, stats interface{},
 				RssBytes:        metrics.Memory.Anon,
 				PageFaults:      metrics.Memory.Pgfault,
 				MajorPageFaults: metrics.Memory.Pgmajfault,
-				MemoryCache:     metrics.Memory.Cache,
+				MemoryCache:     metrics.Memory.File,
 			}, nil
 		}
 	default:

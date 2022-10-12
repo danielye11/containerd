@@ -187,3 +187,19 @@ func metricsForSandbox(sandbox sandboxstore.Sandbox) (interface{}, error) {
 
 	return statsx, nil
 }
+
+func (c *criService) podSandboxMetrics(
+	ctx context.Context,
+	sandbox sandboxstore.Sandbox,
+	stats interface{},
+) (*runtime.PodSandboxMetrics, error) {
+	meta := sandbox.Metadata
+
+	if sandbox.Status.Get().State != sandboxstore.StateReady {
+		return nil, fmt.Errorf("failed to get pod sandbox stats since sandbox container %q is not in ready state", meta.ID)
+	}
+
+	var podSandboxMetrics runtime.PodSandboxMetrics
+
+	return &podSandboxMetrics, nil
+}
